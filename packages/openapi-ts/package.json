@@ -89,6 +89,7 @@
     "axios": "1.13.4",
     "eslint": "9.39.1",
     "ky": "1.14.3",
+    "msw": "2.10.2",
     "nuxt": "3.14.1592",
     "ofetch": "1.5.1",
     "rxjs": "7.8.2",
@@ -98,7 +99,13 @@
     "zone.js": "0.16.0"
   },
   "peerDependencies": {
+    "msw": "^2",
     "typescript": ">=5.5.3"
+  },
+  "peerDependenciesMeta": {
+    "msw": {
+      "optional": true
+    }
   },
   "engines": {
     "node": ">=20.19.0"

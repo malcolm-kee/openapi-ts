@@ -46,6 +46,7 @@ declare module '@hey-api/codegen-core' {
       | 'arktype'
       | 'fastify'
       | 'json-schema'
+      | 'msw'
       | 'sdk'
       | 'typescript'
       | 'valibot'
@@ -79,6 +80,7 @@ declare module '@hey-api/shared' {
     '@tanstack/vue-query': TanStackVueQueryPlugin['Types'];
     arktype: ArktypePlugin['Types'];
     fastify: FastifyPlugin['Types'];
+    msw: MswPlugin['Types'];
     swr: SwrPlugin['Types'];
     valibot: ValibotPlugin['Types'];
     zod: ZodPlugin['Types'];
@@ -118,6 +120,7 @@ import type { TanStackSvelteQueryPlugin } from './plugins/@tanstack/svelte-query
 import type { TanStackVueQueryPlugin } from './plugins/@tanstack/vue-query';
 import type { ArktypePlugin } from './plugins/arktype';
 import type { FastifyPlugin } from './plugins/fastify';
+import type { MswPlugin } from './plugins/msw';
 import type { SwrPlugin } from './plugins/swr';
 import type { ValibotPlugin } from './plugins/valibot';
 import type { ZodPlugin } from './plugins/zod';
