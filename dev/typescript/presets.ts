@@ -30,6 +30,7 @@ export const presets = {
       },
     },
   ],
+  msw: () => ['@hey-api/typescript', 'msw'],
   sdk: () => [
     /** SDK with types */
     '@hey-api/typescript',
