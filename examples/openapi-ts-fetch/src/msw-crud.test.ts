@@ -11,7 +11,10 @@ import { createCrudResolvers } from './msw-crud';
 
 const mock = createMswHandlerFactory({ baseUrl: 'https://petstore3.swagger.io/api/v3' });
 
-const petCrud = createCrudResolvers<Pet>((pet) => String(pet.id));
+const petCrud = createCrudResolvers<Pet>({
+  getId: (pet) => String(pet.id),
+  getIdFromParams: (p) => p.petId,
+});
 
 // Seed some data
 petCrud.store.seed([
@@ -33,13 +36,13 @@ const handlers = [
   mock.findPetsByTagsMock(petCrud.list((pet) => pet.status === 'available')),
 
   // READ one – GET /pet/:petId
-  mock.getPetByIdMock(petCrud.getById((p) => p.petId)),
+  mock.getPetByIdMock(petCrud.getById()),
 
   // UPDATE – PUT /pet  (id comes from the body, not the URL)
-  mock.updatePetMock(petCrud.update()),
+  mock.updatePetMock(petCrud.update({ idFrom: 'body' })),
 
   // DELETE – DELETE /pet/:petId
-  mock.deletePetMock(petCrud.delete((p) => p.petId)),
+  mock.deletePetMock(petCrud.delete()),
 ];
 
 // ---------------------------------------------------------------------------

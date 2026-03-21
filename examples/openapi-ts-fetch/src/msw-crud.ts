@@ -69,6 +69,21 @@ export function createCrudStore<T>(getId: (item: T) => string): CrudStore<T> {
  * (function parameter contravariance — a function that accepts *broader*
  * params is assignable to one that declares *narrower* params).
  */
+type ExtractId = (params: Record<string, string>) => string;
+
+export interface CrudResolversOptions<T> {
+  /** Extract the entity id from the entity itself (e.g. `(pet) => String(pet.id)`). */
+  getId: (item: T) => string;
+  /**
+   * Extract the entity id from path params (e.g. `(p) => p.petId`).
+   * Configured once here so `getById()`, `delete()`, and `update()` don't
+   * need it repeated on every call.
+   */
+  getIdFromParams: ExtractId;
+  /** Optionally bring your own store instance. */
+  store?: CrudStore<T>;
+}
+
 export interface CrudResolvers<T> {
   /**
    * Returns a resolver that parses the JSON body, passes it through
@@ -81,16 +96,18 @@ export interface CrudResolvers<T> {
   create<B = Partial<T>>(toEntity: (body: B) => T): HttpResponseResolver<PathParams, B>;
 
   /**
-   * Returns a resolver that deletes by id extracted from path params.
+   * Returns a resolver that deletes by id extracted from path params
+   * (using `getIdFromParams` from options).
    * Responds 204 on success, 404 when the id is unknown.
    */
-  delete(extractId: (params: Record<string, string>) => string): HttpResponseResolver<PathParams>;
+  delete(): HttpResponseResolver<PathParams>;
 
   /**
    * Returns a resolver that retrieves one item by id extracted from path
-   * params.  Responds with the JSON entity or 404.
+   * params (using `getIdFromParams` from options).
+   * Responds with the JSON entity or 404.
    */
-  getById(extractId: (params: Record<string, string>) => string): HttpResponseResolver<PathParams>;
+  getById(): HttpResponseResolver<PathParams>;
 
   /**
    * Returns a resolver that responds with every item in the store
@@ -102,19 +119,20 @@ export interface CrudResolvers<T> {
   store: CrudStore<T>;
 
   /**
-   * Returns a resolver that parses the JSON body, resolves the id either
-   * from path params or from the entity itself, updates the store, and
-   * responds with the updated entity or 404.
+   * Returns a resolver that parses the JSON body, resolves the id from
+   * path params (via `getIdFromParams`) or from the entity itself (via
+   * `getId`), updates the store, and responds with the updated entity
+   * or 404.
    */
-  update(
-    extractId?: (params: Record<string, string>) => string,
-  ): HttpResponseResolver<PathParams, T>;
+  update(options?: {
+    /** Override: extract id from body instead of path params. */
+    idFrom?: 'body';
+  }): HttpResponseResolver<PathParams, T>;
 }
 
-export function createCrudResolvers<T>(
-  getId: (item: T) => string,
-  store: CrudStore<T> = createCrudStore(getId),
-): CrudResolvers<T> {
+export function createCrudResolvers<T>(options: CrudResolversOptions<T>): CrudResolvers<T> {
+  const { getId, getIdFromParams } = options;
+  const store = options.store ?? createCrudStore(getId);
   return {
     create:
       (toEntity): HttpResponseResolver<PathParams> =>
@@ -125,9 +143,9 @@ export function createCrudResolvers<T>(
       },
 
     delete:
-      (extractId): HttpResponseResolver<PathParams> =>
+      (): HttpResponseResolver<PathParams> =>
       ({ params }) => {
-        const id = extractId(params as Record<string, string>);
+        const id = getIdFromParams(params as Record<string, string>);
         if (!store.delete(id)) {
           return new HttpResponse(null, { status: 404 });
         }
@@ -135,9 +153,9 @@ export function createCrudResolvers<T>(
       },
 
     getById:
-      (extractId): HttpResponseResolver<PathParams> =>
+      (): HttpResponseResolver<PathParams> =>
       ({ params }) => {
-        const id = extractId(params as Record<string, string>);
+        const id = getIdFromParams(params as Record<string, string>);
         const item = store.getById(id);
         if (!item) {
           return new HttpResponse(null, { status: 404 });
@@ -153,10 +171,13 @@ export function createCrudResolvers<T>(
     store,
 
     update:
-      (extractId?): HttpResponseResolver<PathParams, T> =>
+      (updateOptions?): HttpResponseResolver<PathParams, T> =>
       async ({ params, request }) => {
         const body = (await request.json()) as T;
-        const id = extractId ? extractId(params as Record<string, string>) : getId(body);
+        const id =
+          updateOptions?.idFrom === 'body'
+            ? getId(body)
+            : getIdFromParams(params as Record<string, string>);
         const updated = store.update(id, body);
         if (!updated) {
           return new HttpResponse(null, { status: 404 });
