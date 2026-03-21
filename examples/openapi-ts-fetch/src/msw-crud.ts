@@ -71,11 +71,14 @@ export function createCrudStore<T>(getId: (item: T) => string): CrudStore<T> {
  */
 export interface CrudResolvers<T> {
   /**
-   * Returns a resolver that parses the JSON body, passes it through an
-   * optional `prepare` callback (e.g. to assign an id), stores the result,
-   * and responds with 201 + the created entity.
+   * Returns a resolver that parses the JSON body, passes it through
+   * `toEntity` to attach server-generated fields (id, timestamps, etc.),
+   * stores the result, and responds with 201 + the created entity.
+   *
+   * The body type `B` is intentionally decoupled from `T` because create
+   * endpoints typically don't accept an id — it's generated server-side.
    */
-  create(prepare?: (body: T) => T): HttpResponseResolver<PathParams, T>;
+  create<B = Partial<T>>(toEntity: (body: B) => T): HttpResponseResolver<PathParams, B>;
 
   /**
    * Returns a resolver that deletes by id extracted from path params.
@@ -114,11 +117,10 @@ export function createCrudResolvers<T>(
 ): CrudResolvers<T> {
   return {
     create:
-      (prepare?): HttpResponseResolver<PathParams, T> =>
+      (toEntity): HttpResponseResolver<PathParams> =>
       async ({ request }) => {
-        const body = (await request.json()) as T;
-        const item = prepare ? prepare(body) : body;
-        store.create(item);
+        const body = await request.json();
+        const item = store.create(toEntity(body));
         return HttpResponse.json(item, { status: 201 });
       },
 
