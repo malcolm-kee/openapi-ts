@@ -34,6 +34,37 @@ paths:
             text/event-stream:
               schema:
                 $ref: '#/components/schemas/StockUpdate'
+  /stock/{symbol}/watch:
+    get:
+      operationId: watchSingleStock
+      summary: Watch a single stock
+      description: Stream real-time price updates for a specific stock symbol.
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          description: Stock ticker symbol (e.g. AAPL)
+          schema:
+            type: string
+        - name: interval
+          in: query
+          description: Update interval in seconds
+          schema:
+            type: integer
+            default: 5
+      responses:
+        '200':
+          description: Stock price stream for the requested symbol
+          content:
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/StockUpdate'
+        '404':
+          description: Stock symbol not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /stock/history:
     get:
       operationId: getStockHistory
@@ -135,5 +166,15 @@ components:
             - info
             - warning
             - critical
+        message:
+          type: string
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
         message:
           type: string

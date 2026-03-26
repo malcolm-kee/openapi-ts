@@ -44,6 +44,11 @@ export type MarketAlert = {
   type: 'market_alert';
 };
 
+export type ErrorResponse = {
+  code: string;
+  message: string;
+};
+
 export type WatchStockPricesData = {
   body?: never;
   path?: never;
@@ -76,6 +81,41 @@ export type WatchSelectedStocksResponses = {
 
 export type WatchSelectedStocksResponse =
   WatchSelectedStocksResponses[keyof WatchSelectedStocksResponses];
+
+export type WatchSingleStockData = {
+  body?: never;
+  path: {
+    /**
+     * Stock ticker symbol (e.g. AAPL)
+     */
+    symbol: string;
+  };
+  query?: {
+    /**
+     * Update interval in seconds
+     */
+    interval?: number;
+  };
+  url: '/stock/{symbol}/watch';
+};
+
+export type WatchSingleStockErrors = {
+  /**
+   * Stock symbol not found
+   */
+  404: ErrorResponse;
+};
+
+export type WatchSingleStockError = WatchSingleStockErrors[keyof WatchSingleStockErrors];
+
+export type WatchSingleStockResponses = {
+  /**
+   * Stock price stream for the requested symbol
+   */
+  200: StockUpdate;
+};
+
+export type WatchSingleStockResponse = WatchSingleStockResponses[keyof WatchSingleStockResponses];
 
 export type GetStockHistoryData = {
   body?: never;

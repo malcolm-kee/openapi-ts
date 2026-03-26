@@ -1,6 +1,11 @@
 import { useRef, useState } from 'react';
 
-import { getStockHistory, watchSelectedStocks, watchStockPrices } from './client/sdk.gen';
+import {
+  getStockHistory,
+  watchSelectedStocks,
+  watchSingleStock,
+  watchStockPrices,
+} from './client/sdk.gen';
 import type { StockUpdate } from './client/types.gen';
 
 function App() {
@@ -72,6 +77,32 @@ function App() {
     setStatus('disconnected');
   };
 
+  // SSE with path parameter, query parameter, and error response
+  const onWatchSingle = async () => {
+    const controller = new AbortController();
+    controllerRef.current = controller;
+    setStatus('connected');
+    setUpdates([]);
+
+    try {
+      const { stream } = await watchSingleStock({
+        path: { symbol: 'AAPL' },
+        query: { interval: 2 },
+        signal: controller.signal,
+      });
+
+      for await (const update of stream) {
+        setUpdates((prev) => [...prev, update]);
+      }
+    } catch {
+      if (!controller.signal.aborted) {
+        setStatus('error');
+        return;
+      }
+    }
+    setStatus('disconnected');
+  };
+
   // Cancel the stream using AbortController
   const onDisconnect = () => {
     controllerRef.current?.abort();
@@ -111,6 +142,9 @@ function App() {
         </button>
         <button disabled={status === 'connected'} onClick={onWatchSelected}>
           Watch Selected (POST)
+        </button>
+        <button disabled={status === 'connected'} onClick={onWatchSingle}>
+          Watch AAPL (Path Param)
         </button>
         <button disabled={status !== 'connected'} onClick={onDisconnect}>
           Disconnect

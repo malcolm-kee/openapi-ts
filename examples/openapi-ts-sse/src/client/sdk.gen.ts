@@ -7,6 +7,9 @@ import type {
   GetStockHistoryResponses,
   WatchSelectedStocksData,
   WatchSelectedStocksResponses,
+  WatchSingleStockData,
+  WatchSingleStockErrors,
+  WatchSingleStockResponses,
   WatchStockPricesData,
   WatchStockPricesResponses,
 } from './types.gen';
@@ -57,6 +60,20 @@ export const watchSelectedStocks = <ThrowOnError extends boolean = false>(
       ...options.headers,
     },
   });
+
+/**
+ * Watch a single stock
+ *
+ * Stream real-time price updates for a specific stock symbol.
+ */
+export const watchSingleStock = <ThrowOnError extends boolean = false>(
+  options: Options<WatchSingleStockData, ThrowOnError>,
+) =>
+  (options.client ?? client).sse.get<
+    WatchSingleStockResponses,
+    WatchSingleStockErrors,
+    ThrowOnError
+  >({ url: '/stock/{symbol}/watch', ...options });
 
 /**
  * Get stock history
