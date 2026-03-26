@@ -184,6 +184,68 @@ client.instance.interceptors.request.use((config) => {
 });
 ```
 
+## Server-Sent Events
+
+When your OpenAPI spec defines endpoints with `text/event-stream` responses, the SDK generates SSE-enabled functions that return an async stream instead of a regular response.
+
+### Consuming a stream
+
+```js
+import { watchStockPrices } from './client/sdk.gen';
+
+const { stream } = await watchStockPrices();
+
+for await (const event of stream) {
+  console.log(event);
+}
+```
+
+### Callbacks
+
+You can use `onSseEvent` and `onSseError` callbacks for additional event and error processing.
+
+```js
+const { stream } = await watchStockPrices({
+  onSseEvent: (event) => {
+    // access event.data, event.event, event.id, event.retry
+  },
+  onSseError: (error) => {
+    console.error('SSE error:', error);
+  },
+});
+```
+
+### Cancellation
+
+Use an `AbortController` to cancel the stream.
+
+```js
+const controller = new AbortController();
+
+const { stream } = await watchStockPrices({
+  signal: controller.signal,
+});
+
+// cancel the stream
+controller.abort();
+```
+
+### Retry
+
+SSE connections automatically reconnect on failure with exponential backoff. You can configure the retry behavior.
+
+```js
+const { stream } = await watchStockPrices({
+  sseDefaultRetryDelay: 3000, // initial retry delay (default: 3000ms)
+  sseMaxRetryAttempts: 5, // max retry attempts
+  sseMaxRetryDelay: 30000, // max retry delay cap (default: 30000ms)
+});
+```
+
+::: warning
+Axios interceptors registered through `client.instance.interceptors` do not apply to SSE connections. The SSE client uses the native Fetch API under the hood.
+:::
+
 ## Build URL
 
 If you need to access the compiled URL, you can use the `buildUrl()` method. It's loosely typed by default to accept almost any value; in practice, you will want to pass a type hint.

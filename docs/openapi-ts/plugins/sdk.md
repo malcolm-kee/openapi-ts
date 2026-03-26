@@ -232,6 +232,55 @@ export default {
 The SDK plugin currently supports only the `bearer` and `basic` auth schemes. [Open an issue](https://github.com/hey-api/openapi-ts/issues) if you'd like support for additional mechanisms.
 :::
 
+## Server-Sent Events
+
+When your OpenAPI spec defines a response with the `text/event-stream` content type, the SDK plugin automatically generates SSE-enabled functions. No configuration is required.
+
+### Detection
+
+Given the following OpenAPI spec:
+
+```yaml
+/stock/watch:
+  get:
+    operationId: watchStockPrices
+    responses:
+      '200':
+        content:
+          text/event-stream:
+            schema:
+              $ref: '#/components/schemas/StockUpdate'
+```
+
+The SDK generates a function that calls `client.sse.get()` instead of the regular `client.get()`:
+
+```ts
+export const watchStockPrices = (options?) =>
+  (options?.client ?? client).sse.get({
+    url: '/stock/watch',
+    ...options,
+  });
+```
+
+### Consuming a stream
+
+SSE functions return a `{ stream }` object containing an `AsyncGenerator`. Use `for await...of` to consume events:
+
+```ts
+import { watchStockPrices } from './client/sdk.gen';
+
+const { stream } = await watchStockPrices();
+
+for await (const event of stream) {
+  // event is typed based on your schema
+  console.log(event);
+}
+```
+
+### Options
+
+SSE functions accept additional options for callbacks, cancellation, and retry. See the [Fetch API](/openapi-ts/clients/fetch#server-sent-events) client docs (or your chosen client) for full details.
+
 ## Validators
 
 Validating data at runtime comes with a performance cost, which is why it's not enabled by default. To enable validation, set `validator` to `zod` or one of the available [validator plugins](/openapi-ts/validators). This will implicitly add the selected plugin with default values.
