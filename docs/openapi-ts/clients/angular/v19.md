@@ -210,13 +210,79 @@ When your OpenAPI spec defines endpoints with `text/event-stream` responses, the
 
 ### Consuming a stream
 
-```js
+Create a service to manage the SSE connection and expose state via signals.
+
+```ts
+import { Injectable, signal } from '@angular/core';
 import { watchStockPrices } from './client/sdk.gen';
+import type { StockUpdate } from './client/types.gen';
 
-const { stream } = await watchStockPrices();
+@Injectable({ providedIn: 'root' })
+export class StockService {
+  readonly updates = signal<StockUpdate[]>([]);
+  readonly status = signal<'connected' | 'disconnected' | 'error'>('disconnected');
 
-for await (const event of stream) {
-  console.log(event);
+  #controller: AbortController | null = null;
+
+  async connect() {
+    this.#controller = new AbortController();
+    this.status.set('connected');
+    this.updates.set([]);
+
+    try {
+      const { stream } = await watchStockPrices({
+        signal: this.#controller.signal,
+      });
+
+      for await (const event of stream) {
+        this.updates.update((prev) => [...prev, event]);
+      }
+    } catch {
+      if (!this.#controller?.signal.aborted) {
+        this.status.set('error');
+        return;
+      }
+    }
+    this.status.set('disconnected');
+  }
+
+  disconnect() {
+    this.#controller?.abort();
+    this.#controller = null;
+    this.status.set('disconnected');
+  }
+}
+```
+
+Then inject the service in your component and clean up on destroy.
+
+```ts
+import { Component, inject, OnDestroy } from '@angular/core';
+import { StockService } from './stock.service';
+
+@Component({
+  selector: 'app-stock-ticker',
+  template: `
+    <button (click)="connect()">Connect</button>
+    <button (click)="stockService.disconnect()">Disconnect</button>
+    <p>Status: {{ stockService.status() }}</p>
+    <ul>
+      @for (update of stockService.updates(); track $index) {
+        <li>{{ update | json }}</li>
+      }
+    </ul>
+  `,
+})
+export class StockTickerComponent implements OnDestroy {
+  stockService = inject(StockService);
+
+  connect() {
+    this.stockService.connect();
+  }
+
+  ngOnDestroy() {
+    this.stockService.disconnect();
+  }
 }
 ```
 
@@ -260,6 +326,41 @@ const { stream } = await watchStockPrices({
   sseMaxRetryAttempts: 5, // max retry attempts
   sseMaxRetryDelay: 30000, // max retry delay cap (default: 30000ms)
 });
+```
+
+### RxJS alternative
+
+If your codebase uses RxJS pipelines, you can wrap the async generator in an Observable.
+
+```ts
+import { Observable } from 'rxjs';
+import { watchStockPrices } from './client/sdk.gen';
+import type { StockUpdate } from './client/types.gen';
+
+function watchPrices$(): Observable<StockUpdate> {
+  return new Observable((subscriber) => {
+    const controller = new AbortController();
+
+    (async () => {
+      try {
+        const { stream } = await watchStockPrices({
+          signal: controller.signal,
+        });
+
+        for await (const event of stream) {
+          subscriber.next(event);
+        }
+        subscriber.complete();
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          subscriber.error(error);
+        }
+      }
+    })();
+
+    return () => controller.abort();
+  });
+}
 ```
 
 ::: warning

@@ -222,14 +222,36 @@ When your OpenAPI spec defines endpoints with `text/event-stream` responses, the
 
 ### Consuming a stream
 
-```js
+```vue
+<script setup lang="ts">
+import { ref, onUnmounted } from 'vue';
 import { watchStockPrices } from './client/sdk.gen';
+import type { StockUpdate } from './client/types.gen';
 
-const { stream } = await watchStockPrices();
+const updates = ref<StockUpdate[]>([]);
+const controller = new AbortController();
 
-for await (const event of stream) {
-  console.log(event);
+onUnmounted(() => controller.abort());
+
+async function connect() {
+  const { stream } = await watchStockPrices({
+    signal: controller.signal,
+  });
+
+  for await (const event of stream) {
+    updates.value.push(event);
+  }
 }
+</script>
+
+<template>
+  <button @click="connect">Connect</button>
+  <ul>
+    <li v-for="(update, i) in updates" :key="i">
+      {{ update }}
+    </li>
+  </ul>
+</template>
 ```
 
 ### Callbacks
@@ -272,6 +294,62 @@ const { stream } = await watchStockPrices({
   sseMaxRetryAttempts: 5, // max retry attempts
   sseMaxRetryDelay: 30000, // max retry delay cap (default: 30000ms)
 });
+```
+
+### Custom composable
+
+For reusable SSE logic, extract a composable.
+
+```ts
+import { onUnmounted, ref } from 'vue';
+import { watchStockPrices } from './client/sdk.gen';
+import type { StockUpdate } from './client/types.gen';
+
+export function useStockStream() {
+  const updates = ref<StockUpdate[]>([]);
+  const status = ref<'connected' | 'disconnected' | 'error'>('disconnected');
+  let controller: AbortController | null = null;
+
+  async function connect() {
+    controller = new AbortController();
+    status.value = 'connected';
+    updates.value = [];
+
+    try {
+      const { stream } = await watchStockPrices({
+        signal: controller.signal,
+      });
+
+      for await (const event of stream) {
+        updates.value.push(event);
+      }
+    } catch {
+      if (!controller?.signal.aborted) {
+        status.value = 'error';
+        return;
+      }
+    }
+    status.value = 'disconnected';
+  }
+
+  function disconnect() {
+    controller?.abort();
+    controller = null;
+    status.value = 'disconnected';
+  }
+
+  onUnmounted(() => disconnect());
+
+  return { connect, disconnect, status, updates };
+}
+```
+
+```vue
+<script setup lang="ts">
+import { useStockStream } from '~/composables/useStockStream';
+
+const { updates, status, connect, disconnect } = useStockStream();
+</script>
 ```
 
 ::: warning
