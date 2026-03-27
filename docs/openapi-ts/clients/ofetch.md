@@ -20,6 +20,10 @@ The `ofetch` client for Hey API generates a type-safe client from your OpenAPI s
 
 <AuthorsList :people="[dmitriyBrolnickij]" />
 
+### Why
+
+If your project uses ofetch outside of Nuxt — in a Cloudflare Worker, Node.js server, or universal JavaScript application — you want your generated API calls to use the same HTTP layer as the rest of your code. The ofetch client leverages ofetch's automatic retry, smart body parsing, and native request/response hooks.
+
 ## Features
 
 - seamless integration with `@hey-api/openapi-ts` ecosystem

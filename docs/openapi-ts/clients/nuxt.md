@@ -23,6 +23,10 @@ Nuxt client is currently in beta. The interface might change before it becomes s
 
 The Nuxt client for Hey API generates a type-safe client from your OpenAPI spec, fully compatible with validators, transformers, and all core features.
 
+### Why
+
+Nuxt applications rely on `$fetch` (ofetch) for proper SSR hydration and native composables like `useFetch` and `useAsyncData`. Using a raw Fetch client in Nuxt bypasses Nuxt's request lifecycle and can break hydration. The Nuxt client uses Nuxt's native HTTP layer, so your generated API calls integrate correctly with Nuxt's SSR pipeline, interceptors, and module system.
+
 ## Features
 
 - Nuxt v3 support

@@ -30,6 +30,10 @@ The NestJS plugin for Hey API generates type-safe controller method signatures f
 
 <AuthorsList :people="[yuriMikhin]" />
 
+### Why
+
+When implementing a NestJS API from an existing OpenAPI spec, there is no built-in mechanism to ensure your controller methods match the contract. The NestJS plugin generates typed controller method signatures from your spec, so a mismatch between your implementation and the API definition becomes a compile-time error rather than a production bug.
+
 ## Features
 
 - NestJS v11 support

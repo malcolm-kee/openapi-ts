@@ -29,6 +29,10 @@ The Angular client for Hey API generates a type-safe client from your OpenAPI sp
 
 <AuthorsList :people="[maxScopp]" />
 
+### Why
+
+Angular applications use `HttpClient` with dependency injection, and Angular interceptors for cross-cutting concerns like authentication and logging. A Fetch-based client bypasses Angular's DI system entirely. The Angular client uses Angular's `HttpClient`, integrates with `@Injectable()` decorators and `provideHeyApiClient()`, and works with Angular interceptors as expected.
+
 ## Features
 
 - Angular v20 support

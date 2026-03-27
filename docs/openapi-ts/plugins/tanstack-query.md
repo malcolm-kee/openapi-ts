@@ -27,6 +27,10 @@ The TanStack Query plugin for Hey API generates functions and query keys from yo
 Launch demo
 </button>
 
+### Why
+
+Without this plugin, every API endpoint requires you to manually write a `useQuery` or `useMutation` wrapper, define a query key convention, and keep all of it in sync when the API changes. The TanStack Query plugin generates query options, mutation options, and consistent query keys for every operation in your spec. When your API adds or changes an endpoint, you regenerate and your query logic updates automatically.
+
 ## Features
 
 - TanStack Query v5 support

@@ -27,6 +27,10 @@ The Axios client for Hey API generates a type-safe client from your OpenAPI spec
 Launch demo
 </button>
 
+### Why
+
+If your project already uses Axios, switching to a different HTTP layer for generated API calls means maintaining two request pipelines and duplicating interceptor logic for concerns like token refresh, retry, and error handling. The Axios client uses your existing Axios instance directly, so your interceptors apply to generated code automatically.
+
 ## Features
 
 - Axios v1 support

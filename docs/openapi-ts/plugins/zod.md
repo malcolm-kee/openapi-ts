@@ -19,6 +19,10 @@ import ZodVersionSwitcher from '@versions/ZodVersionSwitcher.vue';
 
 The Zod plugin for Hey API generates schemas from your OpenAPI spec, fully compatible with validators, transformers, and all core features.
 
+### Why
+
+TypeScript types are erased at compile time, so they cannot protect you when an API returns unexpected data at runtime. If a field is missing or has the wrong type, your application may fail silently or crash far from the source of the problem. The Zod plugin generates runtime schemas from your OpenAPI spec, so you can validate API responses as they arrive and catch contract violations immediately.
+
 ## Features
 
 - Zod v4 support

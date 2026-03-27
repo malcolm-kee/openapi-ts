@@ -19,6 +19,10 @@ import VersionLabel from '@components/VersionLabel.vue';
 
 The Valibot plugin for Hey API generates schemas from your OpenAPI spec, fully compatible with validators, transformers, and all core features.
 
+### Why
+
+Like Zod, Valibot provides runtime validation that TypeScript types alone cannot offer. The key difference is bundle size — Valibot schemas are tree-shakeable, so you only ship validation code for the schemas you actually use. If your application is sensitive to bundle size, Valibot gives you the same runtime safety as Zod with a smaller footprint.
+
 ## Features
 
 - Valibot v1 support

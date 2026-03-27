@@ -21,6 +21,17 @@ The Fetch API client for Hey API generates a type-safe client from your OpenAPI 
 Launch demo
 </button>
 
+### Why
+
+The Fetch client is the default and works in any JavaScript runtime with zero additional dependencies. If you need specific capabilities, consider one of the other clients:
+
+- [Axios](/openapi-ts/clients/axios) — use your existing Axios instance and its interceptor ecosystem (token refresh, retry, logging)
+- [Ky](/openapi-ts/clients/ky) — built-in retry with backoff, automatic error throwing for non-2xx responses, and request timeouts on top of Fetch
+- [Angular](/openapi-ts/clients/angular) — integrates with Angular's `HttpClient`, dependency injection, and `@Injectable()` decorators
+- [Next.js](/openapi-ts/clients/next-js) — handles Server Components, Server Actions, and Next.js's dual server/client rendering model
+- [Nuxt](/openapi-ts/clients/nuxt) — uses Nuxt's native `$fetch` for proper SSR hydration and composable support (`useFetch`, `useAsyncData`)
+- [OFetch](/openapi-ts/clients/ofetch) — for projects using ofetch outside Nuxt (Cloudflare Workers, Node.js), with automatic retry and smart body parsing
+
 ## Features
 
 - seamless integration with `@hey-api/openapi-ts` ecosystem

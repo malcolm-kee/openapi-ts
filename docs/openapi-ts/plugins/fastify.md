@@ -30,6 +30,10 @@ The Fastify plugin for Hey API generates route handlers from your OpenAPI spec, 
 
 <AuthorsList :people="[jacobCohen]" />
 
+### Why
+
+When building a Fastify server that must conform to an existing OpenAPI spec, you typically define route handlers by hand and hope they match the contract. Any mismatch between your implementation and the spec becomes a bug discovered at runtime or during integration testing. The Fastify plugin generates typed route handler interfaces from your spec, so mismatches become compile-time errors.
+
 ## Features
 
 - Fastify v5 support

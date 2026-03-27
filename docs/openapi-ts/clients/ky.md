@@ -25,6 +25,10 @@ The Ky client for Hey API generates a type-safe client from your OpenAPI spec, f
 
 <AuthorsList :people="[sebastiaanWouters]" />
 
+### Why
+
+The plain Fetch API lacks built-in retry with backoff, automatic error throwing for non-2xx responses, and request timeouts. Ky adds these conveniences while staying lightweight (~4 KB) and built on the standard Fetch API. If you want these features without a heavier dependency like Axios, the Ky client lets your generated API calls benefit from Ky's ergonomic defaults.
+
 ## Features
 
 - seamless integration with `@hey-api/openapi-ts` ecosystem

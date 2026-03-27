@@ -11,6 +11,10 @@ description: Generate a type-safe Next.js client from OpenAPI with the Next.js c
 
 The Next.js client for Hey API generates a type-safe client from your OpenAPI spec, fully compatible with validators, transformers, and all core features.
 
+### Why
+
+Next.js applications run code in both server and client environments, each with different constraints for making API calls. The default Fetch client does not account for Server Components, Server Actions, or Next.js's dual rendering model. The Next.js client handles these differences, providing a single client that works correctly whether your code runs on the server or in the browser.
+
 ## Features
 
 - seamless integration with `@hey-api/openapi-ts` ecosystem

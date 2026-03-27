@@ -25,6 +25,10 @@ The Pinia Colada plugin for Hey API generates functions and query keys from your
 
 <AuthorsList :people="[dmitriyBrolnickij, joshHemphill, sebastiaanWouters]" />
 
+### Why
+
+Pinia Colada manages async state in Vue applications, but wiring each API call into query and mutation options requires repetitive boilerplate. The Pinia Colada plugin generates these options and consistent query keys from your OpenAPI spec, giving you async state management for every endpoint without writing the integration code yourself.
+
 ## Features
 
 - Pinia Colada v0 support

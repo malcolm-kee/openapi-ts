@@ -11,6 +11,10 @@ The SDK plugin generates a high-level, ergonomic API layer on top of the low-lev
 
 It exposes typed functions or methods for each operation, with built-in auth handling, configurable request and response validation, and ready-to-use code examples.
 
+### Why
+
+The HTTP client gives you a low-level `client.get()` / `client.post()` interface, which means you need to know the URL path, method, and parameter shape for every API call. The SDK plugin generates a named function for each operation — instead of remembering that creating a pet is `POST /pets` with a specific body shape, you call `addPet({ body })` and get auth handling and validation built in.
+
 ## Features
 
 - high-level SDK layer on top of the HTTP client
