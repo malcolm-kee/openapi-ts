@@ -210,18 +210,61 @@ When your OpenAPI spec defines endpoints with `text/event-stream` responses, the
 
 ### Consuming a stream
 
-Create a service to manage the SSE connection and expose state via signals.
+With the recommended Angular configuration, the SDK generates `@Injectable` service classes. SSE methods are instance methods on these services.
 
 ```ts
-import { Injectable, signal } from '@angular/core';
-import { watchStockPrices } from './client/sdk.gen';
-import type { StockUpdate } from './client/types.gen';
+// openapi-ts.config.ts
+export default defineConfig({
+  plugins: [
+    '@hey-api/client-angular',
+    {
+      name: '@hey-api/sdk',
+      operations: {
+        containerName: '{{name}}Service',
+        strategy: 'byTags',
+      },
+    },
+  ],
+});
+```
 
+The generated service has SSE methods alongside regular methods:
+
+```ts
+// Generated: sdk.gen.ts
 @Injectable({ providedIn: 'root' })
 export class StockService {
-  readonly updates = signal<StockUpdate[]>([]);
-  readonly status = signal<'connected' | 'disconnected' | 'error'>('disconnected');
+  public watchStockPrices<ThrowOnError extends boolean = false>(options?) {
+    return (options?.client ?? client).sse.get<...>({ url: '/stock/watch', ...options });
+  }
+}
+```
 
+Inject the service in your component. Use signals for state and `ngOnDestroy` for cleanup.
+
+```ts
+import { Component, inject, OnDestroy, signal } from '@angular/core';
+import { StockService } from './client/sdk.gen';
+import type { StockUpdate } from './client/types.gen';
+
+@Component({
+  selector: 'app-stock-ticker',
+  template: `
+    <button (click)="connect()">Connect</button>
+    <button (click)="disconnect()">Disconnect</button>
+    <p>Status: {{ status() }}</p>
+    <ul>
+      @for (update of updates(); track $index) {
+        <li>{{ update | json }}</li>
+      }
+    </ul>
+  `,
+})
+export class StockTickerComponent implements OnDestroy {
+  #stockService = inject(StockService);
+
+  updates = signal<StockUpdate[]>([]);
+  status = signal<'connected' | 'disconnected' | 'error'>('disconnected');
   #controller: AbortController | null = null;
 
   async connect() {
@@ -230,7 +273,7 @@ export class StockService {
     this.updates.set([]);
 
     try {
-      const { stream } = await watchStockPrices({
+      const { stream } = await this.#stockService.watchStockPrices({
         signal: this.#controller.signal,
       });
 
@@ -251,40 +294,16 @@ export class StockService {
     this.#controller = null;
     this.status.set('disconnected');
   }
-}
-```
-
-Then inject the service in your component and clean up on destroy.
-
-```ts
-import { Component, inject, OnDestroy } from '@angular/core';
-import { StockService } from './stock.service';
-
-@Component({
-  selector: 'app-stock-ticker',
-  template: `
-    <button (click)="connect()">Connect</button>
-    <button (click)="stockService.disconnect()">Disconnect</button>
-    <p>Status: {{ stockService.status() }}</p>
-    <ul>
-      @for (update of stockService.updates(); track $index) {
-        <li>{{ update | json }}</li>
-      }
-    </ul>
-  `,
-})
-export class StockTickerComponent implements OnDestroy {
-  stockService = inject(StockService);
-
-  connect() {
-    this.stockService.connect();
-  }
 
   ngOnDestroy() {
-    this.stockService.disconnect();
+    this.disconnect();
   }
 }
 ```
+
+::: tip
+Ensure `provideHeyApiClient(client)` is registered in your `app.config.ts` providers, alongside `provideHttpClient(withFetch())`.
+:::
 
 ### Callbacks
 

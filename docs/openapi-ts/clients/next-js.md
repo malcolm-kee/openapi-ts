@@ -251,7 +251,9 @@ When your OpenAPI spec defines endpoints with `text/event-stream` responses, the
 
 ### Consuming a stream
 
-SSE requires a client component since it uses browser APIs and React hooks.
+::: tip
+Unlike regular SDK calls which support Next.js caching options (`cache`, `next: { revalidate, tags }`), SSE streams are long-lived connections and must run in client components.
+:::
 
 ```tsx
 'use client';

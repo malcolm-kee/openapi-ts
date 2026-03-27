@@ -222,19 +222,30 @@ When your OpenAPI spec defines endpoints with `text/event-stream` responses, the
 
 ### Consuming a stream
 
+::: tip
+SSE endpoints always return `{ stream }` with an `AsyncGenerator`. The `composable` option (`useAsyncData`, `useFetch`, etc.) does not apply to SSE — it is designed for request-response patterns with caching. SSE streams are consumed client-side only.
+:::
+
+With the `@hey-api/nuxt` module, SDK functions are auto-imported. Vue refs passed as parameters are automatically unwrapped.
+
 ```vue
 <script setup lang="ts">
 import { ref, onUnmounted } from 'vue';
-import { watchStockPrices } from './client/sdk.gen';
-import type { StockUpdate } from './client/types.gen';
+// With @hey-api/nuxt, these imports are auto-generated:
+import { watchSingleStock } from '#hey-api/sdk.gen';
+import type { StockUpdate } from '#hey-api/types.gen';
 
 const updates = ref<StockUpdate[]>([]);
-const controller = new AbortController();
+const symbol = ref('AAPL');
+let controller: AbortController | null = null;
 
-onUnmounted(() => controller.abort());
+onUnmounted(() => controller?.abort());
 
 async function connect() {
-  const { stream } = await watchStockPrices({
+  controller = new AbortController();
+
+  const { stream } = await watchSingleStock({
+    path: { symbol }, // Vue refs are unwrapped automatically
     signal: controller.signal,
   });
 
@@ -245,6 +256,7 @@ async function connect() {
 </script>
 
 <template>
+  <input v-model="symbol" />
   <button @click="connect">Connect</button>
   <ul>
     <li v-for="(update, i) in updates" :key="i">
