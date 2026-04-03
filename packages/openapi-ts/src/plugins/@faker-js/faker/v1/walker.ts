@@ -21,7 +21,7 @@ export interface VisitorConfig {
   schemaExtractor?: SchemaExtractor<ProcessorContext>;
 }
 
-const LITERAL_FALSE: FakerResult = { expression: $('undefined'), usesFaker: false };
+const FALLBACK_UNDEFINED: FakerResult = { expression: $('undefined'), usesFaker: false };
 
 export function createVisitor(
   config: VisitorConfig,
@@ -81,10 +81,10 @@ export function createVisitor(
       if (items.length > 0) {
         return items[0]!;
       }
-      return LITERAL_FALSE;
+      return FALLBACK_UNDEFINED;
     },
     never() {
-      return LITERAL_FALSE;
+      return FALLBACK_UNDEFINED;
     },
     null() {
       return { expression: $.fromValue(null), usesFaker: false };
@@ -149,11 +149,11 @@ export function createVisitor(
       return { expression: $.array(...elements), usesFaker: anyChildUsesFaker };
     },
     undefined() {
-      return LITERAL_FALSE;
+      return FALLBACK_UNDEFINED;
     },
     union(items, schemas) {
       if (items.length === 0) {
-        return LITERAL_FALSE;
+        return FALLBACK_UNDEFINED;
       }
       // If one variant is null, randomly choose between non-null and null
       const nullIndex = schemas.findIndex((s) => s.type === 'null');
@@ -170,11 +170,11 @@ export function createVisitor(
       return items[0]!;
     },
     unknown() {
-      return LITERAL_FALSE;
+      return FALLBACK_UNDEFINED;
     },
 
     void() {
-      return LITERAL_FALSE;
+      return FALLBACK_UNDEFINED;
     },
   };
 }
