@@ -26,7 +26,7 @@ const ensureFaker = (options?: Options): Faker => options?.faker ?? faker;
 
 export const fakeFoo = (options?: Options): Foo => ({
     name: ensureFaker(options).string.sample(),
-    age: ensureFaker(options).number.int(),
+    age: ensureFaker(options).number.int({ min: 1, max: 120 }),
     ...!resolveCondition(options?.includeOptional ?? true, ensureFaker(options)) ? {} : { active: ensureFaker(options).datatype.boolean() }
 });
 

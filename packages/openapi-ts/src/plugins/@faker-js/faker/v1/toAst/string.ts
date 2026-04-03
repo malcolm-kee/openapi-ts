@@ -2,16 +2,19 @@ import type { SchemaWithType } from '@hey-api/shared';
 
 import { $ } from '../../../../../ts-dsl';
 import type { Expression, FakerWalkerContext } from '../../shared/types';
+import type { PropertyNameInfo } from './nameRules';
+import { stringNameToExpression } from './nameRules';
 
 /**
  * Generates a faker expression for a string schema, respecting format,
- * pattern, and length constraints.
+ * pattern, property name, and length constraints.
  *
- * Priority: format > pattern > length constraints > fallback.
+ * Priority: format > pattern > property name > length constraints > fallback.
  */
 export function stringToExpression(
   ctx: FakerWalkerContext,
   schema: SchemaWithType<'string'>,
+  nameInfo?: PropertyNameInfo,
 ): Expression {
   // 1. Format-specific faker methods
   const formatExpr = formatToExpression(ctx, schema.format);
@@ -24,7 +27,15 @@ export function stringToExpression(
     return ctx.fakerAccessor.attr('helpers').attr('fromRegExp').call($.literal(schema.pattern));
   }
 
-  // 3. Length constraints → faker.string.alpha({ length: { min, max } })
+  // 3. Property name inference → semantic faker helpers
+  if (nameInfo) {
+    const nameExpr = stringNameToExpression(ctx, nameInfo);
+    if (nameExpr) {
+      return nameExpr;
+    }
+  }
+
+  // 4. Length constraints → faker.string.alpha({ length: { min, max } })
   // faker requires both min and max — fill in sensible defaults when only one is specified
   if (schema.minLength !== undefined || schema.maxLength !== undefined) {
     const min = schema.minLength ?? 0;
@@ -36,7 +47,7 @@ export function stringToExpression(
       .call($.object().prop('length', lengthObj));
   }
 
-  // 4. Fallback
+  // 5. Fallback
   return ctx.fakerAccessor.attr('string').attr('sample').call();
 }
 
