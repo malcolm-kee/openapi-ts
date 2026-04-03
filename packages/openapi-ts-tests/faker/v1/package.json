@@ -7,6 +7,7 @@
     "typecheck": "tsgo --noEmit"
   },
   "devDependencies": {
+    "@faker-js/faker": "^9.9.0",
     "@hey-api/openapi-ts": "workspace:*",
     "typescript": "5.9.3"
   },

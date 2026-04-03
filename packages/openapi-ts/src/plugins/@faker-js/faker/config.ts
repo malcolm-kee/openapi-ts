@@ -1,7 +1,7 @@
 import { definePluginConfig, mappers } from '@hey-api/shared';
 
 import { Api } from './api';
-// import { handler } from './plugin';
+import { handler } from './plugin';
 import type { FakerJsFakerPlugin } from './types';
 
 export const defaultConfig: FakerJsFakerPlugin['Config'] = {
@@ -10,8 +10,7 @@ export const defaultConfig: FakerJsFakerPlugin['Config'] = {
     case: 'camelCase',
     includeInEntry: false,
   },
-  // handler,
-  handler: () => {},
+  handler,
   name: '@faker-js/faker',
   resolveConfig: (plugin, context) => {
     plugin.config.definitions = context.valueToObject({
