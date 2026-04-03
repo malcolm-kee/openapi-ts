@@ -47,6 +47,14 @@ describe(`OpenAPI ${version}`, () => {
       description:
         'handles string formats, numeric constraints, array constraints, and default values',
     },
+    {
+      config: createConfig({
+        input: 'faker-m3.yaml',
+        output: 'faker-m3',
+        plugins: ['@hey-api/typescript', '@faker-js/faker'],
+      }),
+      description: 'handles union randomization, allOf intersections, and discriminated unions',
+    },
   ];
 
   it.each(scenarios)('$description', async ({ config }) => {

@@ -37,6 +37,7 @@ export function objectToExpression({
     } else {
       // Optional property: conditionally spread based on options.includeOptional
       // Generated: ...(!resolveCondition(options?.includeOptional ?? true, faker) ? {} : { prop: value })
+      fakerCtx.tracking.needsResolveCondition = true;
       const includeCondition = $('resolveCondition').call(
         $.binary($(fakerCtx.optionsId).attr('includeOptional').optional(), '??', $.literal(true)),
         fakerCtx.fakerAccessor,

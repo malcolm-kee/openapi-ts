@@ -19,6 +19,14 @@ export interface FakerResult {
 }
 
 /**
+ * Mutable tracking of which helpers are actually referenced in the generated output.
+ * Used to conditionally emit helper declarations only when needed.
+ */
+export interface EmitTracking {
+  needsResolveCondition: boolean;
+}
+
+/**
  * Context carried through the walker for building faker expressions.
  */
 export interface FakerWalkerContext {
@@ -31,4 +39,6 @@ export interface FakerWalkerContext {
    * The `options` identifier, used when calling referenced factories.
    */
   optionsId: ReturnType<typeof $.expr>;
+  /** Shared tracking object for conditional helper emission. */
+  tracking: EmitTracking;
 }
