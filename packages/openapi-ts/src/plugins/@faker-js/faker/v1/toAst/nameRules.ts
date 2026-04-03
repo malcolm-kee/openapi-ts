@@ -28,36 +28,73 @@ export interface PropertyNameInfo {
 // Keys are normalized: lowercase with separators removed, sorted alphabetically.
 // ---------------------------------------------------------------------------
 const STRING_NAME_RULES: Record<string, NameRule> = {
+  accountnumber: { fakerPath: ['finance', 'accountNumber'] },
+  address: { fakerPath: ['location', 'streetAddress'] },
   avatar: { fakerPath: ['image', 'avatar'] },
   avatarurl: { fakerPath: ['image', 'avatar'] },
   bio: { fakerPath: ['lorem', 'sentence'] },
+  cardnumber: { fakerPath: ['finance', 'creditCardNumber'] },
   city: { fakerPath: ['location', 'city'] },
+  color: { fakerPath: ['color', 'human'] },
+  colour: { fakerPath: ['color', 'human'] },
   company: { fakerPath: ['company', 'name'] },
   companyname: { fakerPath: ['company', 'name'] },
+  contenttype: { fakerPath: ['system', 'mimeType'] },
   country: { fakerPath: ['location', 'country'] },
+  countrycode: { fakerPath: ['location', 'countryCode'] },
+  creditcard: { fakerPath: ['finance', 'creditCardNumber'] },
+  creditcardnumber: { fakerPath: ['finance', 'creditCardNumber'] },
+  currency: { fakerPath: ['finance', 'currencyCode'] },
+  currencycode: { fakerPath: ['finance', 'currencyCode'] },
+  currencyname: { fakerPath: ['finance', 'currencyName'] },
+  currencysymbol: { fakerPath: ['finance', 'currencySymbol'] },
   description: { fakerPath: ['lorem', 'sentence'] },
+  domain: { fakerPath: ['internet', 'domainName'] },
+  domainname: { fakerPath: ['internet', 'domainName'] },
   email: { fakerPath: ['internet', 'email'] },
   emailaddress: { fakerPath: ['internet', 'email'] },
+  filename: { fakerPath: ['system', 'fileName'] },
+  filepath: { fakerPath: ['system', 'filePath'] },
   firstname: { fakerPath: ['person', 'firstName'] },
   fullname: { fakerPath: ['person', 'fullName'] },
   homepage: { fakerPath: ['internet', 'url'] },
+  hostname: { fakerPath: ['internet', 'domainName'] },
+  iban: { fakerPath: ['finance', 'iban'] },
   id: { fakerPath: ['string', 'uuid'] },
+  imageurl: { fakerPath: ['image', 'url'] },
+  ip: { fakerPath: ['internet', 'ip'] },
+  ipaddress: { fakerPath: ['internet', 'ip'] },
+  isbn: { fakerPath: ['commerce', 'isbn'] },
   jobtitle: { fakerPath: ['person', 'jobTitle'] },
+  jwt: { fakerPath: ['internet', 'jwt'] },
   lastname: { fakerPath: ['person', 'lastName'] },
   latitude: { fakerPath: ['location', 'latitude'] },
   longitude: { fakerPath: ['location', 'longitude'] },
+  mac: { fakerPath: ['internet', 'mac'] },
+  macaddress: { fakerPath: ['internet', 'mac'] },
+  middlename: { fakerPath: ['person', 'middleName'] },
+  mimetype: { fakerPath: ['system', 'mimeType'] },
   password: { fakerPath: ['internet', 'password'] },
   phone: { fakerPath: ['phone', 'number'] },
   phonenumber: { fakerPath: ['phone', 'number'] },
   postalcode: { fakerPath: ['location', 'zipCode'] },
+  productname: { fakerPath: ['commerce', 'productName'] },
+  profileimage: { fakerPath: ['image', 'avatar'] },
+  semver: { fakerPath: ['system', 'semver'] },
+  slug: { fakerPath: ['lorem', 'slug'] },
   state: { fakerPath: ['location', 'state'] },
+  street: { fakerPath: ['location', 'street'] },
   streetaddress: { fakerPath: ['location', 'streetAddress'] },
   summary: { fakerPath: ['lorem', 'sentence'] },
+  surname: { fakerPath: ['person', 'lastName'] },
   timezone: { fakerPath: ['location', 'timeZone'] },
   title: { fakerPath: ['lorem', 'words'] },
+  token: { fakerPath: ['internet', 'jwt'] },
   url: { fakerPath: ['internet', 'url'] },
+  useragent: { fakerPath: ['internet', 'userAgent'] },
   username: { fakerPath: ['internet', 'username'] },
   uuid: { fakerPath: ['string', 'uuid'] },
+  version: { fakerPath: ['system', 'semver'] },
   website: { fakerPath: ['internet', 'url'] },
   zipcode: { fakerPath: ['location', 'zipCode'] },
 };
@@ -72,12 +109,14 @@ const STRING_COMPOUND_RULES: Record<string, NameRule> = {
   'address.state': { fakerPath: ['location', 'state'] },
   'address.street': { fakerPath: ['location', 'streetAddress'] },
   'author.name': { fakerPath: ['person', 'fullName'] },
+  'book.title': { fakerPath: ['book', 'title'] },
   'company.name': { fakerPath: ['company', 'name'] },
   'customer.name': { fakerPath: ['person', 'fullName'] },
   'employee.name': { fakerPath: ['person', 'fullName'] },
   'organization.name': { fakerPath: ['company', 'name'] },
   'owner.name': { fakerPath: ['person', 'fullName'] },
   'person.name': { fakerPath: ['person', 'fullName'] },
+  'product.description': { fakerPath: ['commerce', 'productDescription'] },
   'product.name': { fakerPath: ['commerce', 'productName'] },
   'user.name': { fakerPath: ['person', 'fullName'] },
 };
@@ -87,7 +126,11 @@ const STRING_COMPOUND_RULES: Record<string, NameRule> = {
 // ---------------------------------------------------------------------------
 const NUMBER_NAME_RULES: Record<string, NameRule> = {
   age: { defaultArgs: { max: 120, min: 1 }, fakerPath: ['number', 'int'] },
+  amount: { defaultArgs: { max: 10000, min: 0 }, fakerPath: ['number', 'float'] },
+  count: { defaultArgs: { max: 1000, min: 0 }, fakerPath: ['number', 'int'] },
   port: { fakerPath: ['internet', 'port'] },
+  price: { defaultArgs: { max: 10000, min: 0 }, fakerPath: ['number', 'float'] },
+  quantity: { defaultArgs: { max: 100, min: 1 }, fakerPath: ['number', 'int'] },
 };
 
 // ---------------------------------------------------------------------------
@@ -103,7 +146,7 @@ function normalizeName(name: string): string {
  * Extract the property name and its parent context from a schema visitor path.
  *
  * Path examples:
- * - `['#/components/schemas/User', 'properties', 'name']`
+ * - `['components', 'schemas', 'User', 'properties', 'name']`
  *    -> `{ name: 'name', parent: 'User' }`
  * - `['...', 'properties', 'address', 'properties', 'street']`
  *    -> `{ name: 'street', parent: 'address' }`
