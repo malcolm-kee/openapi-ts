@@ -1482,11 +1482,11 @@ importers:
         specifier: 0.16.0
         version: 0.16.0
 
-  packages/openapi-ts-tests/faker/v1:
+  packages/openapi-ts-tests/faker/v10:
     devDependencies:
       '@faker-js/faker':
-        specifier: ^9.9.0
-        version: 9.9.0
+        specifier: ~10.4.0
+        version: 10.4.0
       '@hey-api/openapi-ts':
         specifier: workspace:*
         version: link:../../../openapi-ts
@@ -3900,13 +3900,13 @@ packages:
       '@noble/hashes':
         optional: true
 
+  '@faker-js/faker@10.4.0':
+    resolution: {integrity: sha512-sDBWI3yLy8EcDzgobvJTWq1MJYzAkQdpjXuPukga9wXonhpMRvd1Izuo2Qgwey2OiEoRIBr35RMU9HJRoOHzpw==}
+    engines: {node: ^20.19.0 || ^22.13.0 || ^23.5.0 || >=24.0.0, npm: '>=10'}
+
   '@faker-js/faker@8.4.1':
     resolution: {integrity: sha512-XQ3cU+Q8Uqmrbf2e0cIC/QN43sTBSC8KF12u29Mb47tWrt2hAgBXSgpZMj4Ao8Uk0iJcU99QsOCaIL8934obCg==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0, npm: '>=6.14.13'}
-
-  '@faker-js/faker@9.9.0':
-    resolution: {integrity: sha512-OEl393iCOoo/z8bMezRlJu+GlRGlsKbUAN7jKB6LhnKoqKve5DXRpalbItIIcwnCjs1k/FOPjFzcA6Qn+H+YbA==}
-    engines: {node: '>=18.0.0', npm: '>=9.0.0'}
 
   '@fastify/ajv-compiler@4.0.5':
     resolution: {integrity: sha512-KoWKW+MhvfTRWL4qrhUwAAZoaChluo0m0vbiJlGMt2GXvL4LVPQEjt8kSpHI3IBq5Rez8fg+XeH3cneztq+C7A==}
@@ -18699,9 +18699,9 @@ snapshots:
 
   '@exodus/bytes@1.11.0': {}
 
-  '@faker-js/faker@8.4.1': {}
+  '@faker-js/faker@10.4.0': {}
 
-  '@faker-js/faker@9.9.0': {}
+  '@faker-js/faker@8.4.1': {}
 
   '@fastify/ajv-compiler@4.0.5':
     dependencies:

@@ -2,7 +2,7 @@ import type { IR } from '@hey-api/shared';
 
 import type { Expression } from './shared/types';
 import type { FakerJsFakerPlugin } from './types';
-import { toNodeRefV1, toNodeV1 } from './v1/api';
+import { toNodeRefV10, toNodeV10 } from './v10/api';
 
 export type IApi = {
   /**
@@ -40,10 +40,10 @@ export type IApi = {
 
 export class Api implements IApi {
   toNode(args: { plugin: FakerJsFakerPlugin['Instance']; schema: IR.SchemaObject }): Expression {
-    return toNodeV1(args);
+    return toNodeV10(args);
   }
 
   toNodeRef(args: { plugin: FakerJsFakerPlugin['Instance']; schema: IR.SchemaObject }): Expression {
-    return toNodeRefV1(args);
+    return toNodeRefV10(args);
   }
 }

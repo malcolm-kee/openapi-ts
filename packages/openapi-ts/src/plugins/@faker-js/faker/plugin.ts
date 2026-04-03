@@ -1,4 +1,4 @@
 import type { FakerJsFakerPlugin } from './types';
-import { handlerV1 } from './v1/plugin';
+import { handlerV10 } from './v10/plugin';
 
-export const handler: FakerJsFakerPlugin['Handler'] = (args) => handlerV1(args);
+export const handler: FakerJsFakerPlugin['Handler'] = (args) => handlerV10(args);
