@@ -6,11 +6,21 @@ import type { Address, BoundedFloat, BoundedInt, DateOnly, DateTime, DefaultBool
 
 export type Options = {
     faker?: Faker;
-    includeOptional?: 'always' | 'random' | false;
-    useDefault?: 'always' | 'random' | false;
+    /**
+     * Whether to include optional properties.
+     * Provide a number between 0 and 1 to randomly include based on that probability.
+     * @default true
+     */
+    includeOptional?: boolean | number;
+    /**
+     * Whether to use schema default values instead of generating fake data.
+     * Provide a number between 0 and 1 to randomly use defaults based on that probability.
+     * @default false
+     */
+    useDefault?: boolean | number;
 };
 
-const resolveCondition = (condition: 'always' | 'random' | false, faker: Faker): boolean => condition === 'always' || condition === 'random' && faker.datatype.boolean();
+const resolveCondition = (condition: boolean | number, faker: Faker): boolean => condition === true || typeof condition === 'number' && faker.datatype.boolean({ probability: condition });
 
 const ensureFaker = (options?: Options): Faker => options?.faker ?? faker;
 
@@ -74,14 +84,14 @@ export const fakeNullableInt = (options?: Options): NullableInt => ensureFaker(o
 
 export const fakeObjectWithDefaultProp = (options?: Options): ObjectWithDefaultProp => ({
     name: ensureFaker(options).string.sample(),
-    ...!resolveCondition(options?.includeOptional ?? 'always', ensureFaker(options)) ? {} : { status: resolveCondition(options?.useDefault ?? false, ensureFaker(options)) ? 'active' : ensureFaker(options).string.sample() }
+    ...!resolveCondition(options?.includeOptional ?? true, ensureFaker(options)) ? {} : { status: resolveCondition(options?.useDefault ?? false, ensureFaker(options)) ? 'active' : ensureFaker(options).string.sample() }
 });
 
 export const fakeUserProfile = (options?: Options): UserProfile => ({
     id: ensureFaker(options).number.int(),
     name: ensureFaker(options).string.sample(),
-    ...!resolveCondition(options?.includeOptional ?? 'always', ensureFaker(options)) ? {} : { bio: ensureFaker(options).string.sample() },
-    ...!resolveCondition(options?.includeOptional ?? 'always', ensureFaker(options)) ? {} : { age: ensureFaker(options).number.int() }
+    ...!resolveCondition(options?.includeOptional ?? true, ensureFaker(options)) ? {} : { bio: ensureFaker(options).string.sample() },
+    ...!resolveCondition(options?.includeOptional ?? true, ensureFaker(options)) ? {} : { age: ensureFaker(options).number.int() }
 });
 
 export const fakeAddress = (options?: Options): Address => ({
@@ -92,7 +102,7 @@ export const fakeAddress = (options?: Options): Address => ({
 export const fakePerson = (options?: Options): Person => ({
     name: fakeShortName(options),
     email: fakeEmail(options),
-    ...!resolveCondition(options?.includeOptional ?? 'always', ensureFaker(options)) ? {} : { address: fakeAddress(options) }
+    ...!resolveCondition(options?.includeOptional ?? true, ensureFaker(options)) ? {} : { address: fakeAddress(options) }
 });
 
 export const fakePersonList = (options?: Options): PersonList => ensureFaker(options).helpers.multiple(() => fakePerson(options), { count: { min: 1, max: 20 } });

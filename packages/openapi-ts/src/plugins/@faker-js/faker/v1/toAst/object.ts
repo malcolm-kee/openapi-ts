@@ -10,8 +10,8 @@ import type { FakerJsFakerPlugin } from '../../types';
  *
  * Required properties are always included. Optional properties are
  * conditionally included based on `options.includeOptional`:
- * - `'always'` or `undefined` (default) — always included
- * - `'random'` — included when `faker.datatype.boolean()` returns true
+ * - `true` or `undefined` (default) — always included
+ * - number (0.0-1.0) — included with that probability
  * - `false` — omitted entirely
  */
 export function objectToExpression({
@@ -36,13 +36,9 @@ export function objectToExpression({
       obj.prop(name, result.expression);
     } else {
       // Optional property: conditionally spread based on options.includeOptional
-      // Generated: ...(!resolveCondition(options?.includeOptional ?? 'always', faker) ? {} : { prop: value })
+      // Generated: ...(!resolveCondition(options?.includeOptional ?? true, faker) ? {} : { prop: value })
       const includeCondition = $('resolveCondition').call(
-        $.binary(
-          $(fakerCtx.optionsId).attr('includeOptional').optional(),
-          '??',
-          $.literal('always'),
-        ),
+        $.binary($(fakerCtx.optionsId).attr('includeOptional').optional(), '??', $.literal(true)),
         fakerCtx.fakerAccessor,
       );
       const propObj = $.object().prop(name, result.expression);

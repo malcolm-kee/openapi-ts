@@ -23,23 +23,29 @@ export const handlerV1: FakerJsFakerPlugin['Handler'] = ({ plugin }) => {
     .prop('faker', (p) => p.optional().type($.type(fakerTypeSymbol)))
     .prop('includeOptional', (p) =>
       p
+        .doc([
+          'Whether to include optional properties.',
+          'Provide a number between 0 and 1 to randomly include based on that probability.',
+          '@default true',
+        ])
         .optional()
-        .type($.type.or($.type.literal('always'), $.type.literal('random'), $.type.literal(false))),
+        .type($.type.or($.type('boolean'), $.type('number'))),
     )
     .prop('useDefault', (p) =>
       p
+        .doc([
+          'Whether to use schema default values instead of generating fake data.',
+          'Provide a number between 0 and 1 to randomly use defaults based on that probability.',
+          '@default false',
+        ])
         .optional()
-        .type($.type.or($.type.literal('always'), $.type.literal('random'), $.type.literal(false))),
+        .type($.type.or($.type('boolean'), $.type('number'))),
     );
   plugin.node($.type.alias(optionsSymbol).export().type(optionsType));
 
-  // Emit helper: const resolveCondition = (condition: 'always' | 'random' | false, faker: Faker): boolean =>
-  //   condition === 'always' || condition === 'random' && faker.datatype.boolean()
-  const conditionParamType = $.type.or(
-    $.type.literal('always'),
-    $.type.literal('random'),
-    $.type.literal(false),
-  );
+  // Emit helper: const resolveCondition = (condition: boolean | number, faker: Faker): boolean =>
+  //   condition === true || typeof condition === 'number' && faker.datatype.boolean({ probability: condition })
+  const conditionParamType = $.type.or($.type('boolean'), $.type('number'));
   const resolveConditionFn = $.func()
     .arrow()
     .param('condition', (p) => p.type(conditionParamType))
@@ -48,13 +54,16 @@ export const handlerV1: FakerJsFakerPlugin['Handler'] = ({ plugin }) => {
     .do(
       $.return(
         $.binary(
-          $('condition').eq($.literal('always')),
+          $('condition').eq($.literal(true)),
           '||',
           $(
             $.binary(
-              $('condition').eq($.literal('random')),
+              $('condition').typeofExpr().eq($.literal('number')),
               '&&',
-              $('faker').attr('datatype').attr('boolean').call(),
+              $('faker')
+                .attr('datatype')
+                .attr('boolean')
+                .call($.object().prop('probability', $('condition'))),
             ),
           ),
         ),

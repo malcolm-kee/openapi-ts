@@ -4,18 +4,28 @@ import { faker, type Faker } from '@faker-js/faker';
 
 export type Options = {
     faker?: Faker;
-    includeOptional?: 'always' | 'random' | false;
-    useDefault?: 'always' | 'random' | false;
+    /**
+     * Whether to include optional properties.
+     * Provide a number between 0 and 1 to randomly include based on that probability.
+     * @default true
+     */
+    includeOptional?: boolean | number;
+    /**
+     * Whether to use schema default values instead of generating fake data.
+     * Provide a number between 0 and 1 to randomly use defaults based on that probability.
+     * @default false
+     */
+    useDefault?: boolean | number;
 };
 
-const resolveCondition = (condition: 'always' | 'random' | false, faker: Faker): boolean => condition === 'always' || condition === 'random' && faker.datatype.boolean();
+const resolveCondition = (condition: boolean | number, faker: Faker): boolean => condition === true || typeof condition === 'number' && faker.datatype.boolean({ probability: condition });
 
 const ensureFaker = (options?: Options): Faker => options?.faker ?? faker;
 
 export const fakeFoo = (options?: Options) => ({
     name: ensureFaker(options).string.sample(),
     age: ensureFaker(options).number.int(),
-    ...!resolveCondition(options?.includeOptional ?? 'always', ensureFaker(options)) ? {} : { active: ensureFaker(options).datatype.boolean() }
+    ...!resolveCondition(options?.includeOptional ?? true, ensureFaker(options)) ? {} : { active: ensureFaker(options).datatype.boolean() }
 });
 
 export const fakeBar = (options?: Options) => ensureFaker(options).helpers.arrayElement(['baz', 'qux']);
