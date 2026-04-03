@@ -22,6 +22,22 @@ describe(`OpenAPI ${version}`, () => {
       }),
       description: 'generates faker factories for basic schemas',
     },
+    {
+      config: createConfig({
+        input: 'faker-basic.yaml',
+        output: 'faker-basic-typed',
+        plugins: ['@hey-api/typescript', '@faker-js/faker'],
+      }),
+      description: 'generates typed faker factories when typescript plugin is active',
+    },
+    {
+      config: createConfig({
+        input: 'faker-m1.yaml',
+        output: 'faker-m1',
+        plugins: ['@hey-api/typescript', '@faker-js/faker'],
+      }),
+      description: 'handles number, null, enum-with-null, array, $ref, and union schemas',
+    },
   ];
 
   it.each(scenarios)('$description', async ({ config }) => {

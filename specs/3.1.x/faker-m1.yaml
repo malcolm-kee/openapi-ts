@@ -1,0 +1,76 @@
+openapi: 3.1.0
+info:
+  title: Faker M1 coverage test
+  version: '1'
+paths: {}
+components:
+  schemas:
+    # number / integer
+    Price:
+      type: number
+    Quantity:
+      type: integer
+    # boolean
+    Active:
+      type: boolean
+    # null
+    Nothing:
+      type: 'null'
+    # unknown (empty schema)
+    Anything: {}
+    # enum with null member (OpenAPI 3.1 style)
+    StatusWithNull:
+      type:
+        - string
+        - 'null'
+      enum:
+        - active
+        - inactive
+        - null
+    # enum with numeric values
+    NumericEnum:
+      type: integer
+      enum:
+        - 1
+        - 2
+        - 3
+    # array of primitives
+    Tags:
+      type: array
+      items:
+        type: string
+    # object with $ref
+    Pet:
+      type: object
+      properties:
+        name:
+          type: string
+        tag:
+          $ref: '#/components/schemas/Tag'
+      required:
+        - name
+    Tag:
+      type: object
+      properties:
+        id:
+          type: integer
+        label:
+          type: string
+      required:
+        - id
+        - label
+    # oneOf union — should pick first variant
+    PetOrTag:
+      oneOf:
+        - $ref: '#/components/schemas/Pet'
+        - $ref: '#/components/schemas/Tag'
+    # anyOf union — should pick first variant
+    StringOrNumber:
+      anyOf:
+        - type: string
+        - type: number
+    # nested array of objects
+    PetList:
+      type: array
+      items:
+        $ref: '#/components/schemas/Pet'
