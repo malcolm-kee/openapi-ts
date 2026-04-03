@@ -101,3 +101,19 @@ components:
           type: string
       required:
         - name
+
+    # --- String id / _id → faker.string.uuid() ---
+    Document:
+      type: object
+      properties:
+        id:
+          type: string
+        _id:
+          type: string
+        # integer id should NOT use uuid — stays as faker.number.int()
+        numericId:
+          type: integer
+      required:
+        - id
+        - _id
+        - numericId

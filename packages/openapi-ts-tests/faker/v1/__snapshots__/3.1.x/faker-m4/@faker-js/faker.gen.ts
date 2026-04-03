@@ -2,7 +2,7 @@
 
 import { faker, type Faker } from '@faker-js/faker';
 
-import type { Company, Config, PersonProfile, PersonWithConstraints, User } from '../types.gen';
+import type { Company, Config, Document, PersonProfile, PersonWithConstraints, User } from '../types.gen';
 
 export type Options = {
     faker?: Faker;
@@ -55,4 +55,10 @@ export const fakeCompany = (options?: Options): Company => ({
 
 export const fakeConfig = (options?: Options): Config => ({
     name: ensureFaker(options).string.sample()
+});
+
+export const fakeDocument = (options?: Options): Document => ({
+    id: ensureFaker(options).string.uuid(),
+    _id: ensureFaker(options).string.uuid(),
+    numericId: ensureFaker(options).number.int()
 });

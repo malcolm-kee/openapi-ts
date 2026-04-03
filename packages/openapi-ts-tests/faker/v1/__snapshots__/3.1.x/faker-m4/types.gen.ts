@@ -36,3 +36,9 @@ export type Company = {
 export type Config = {
     name: string;
 };
+
+export type Document = {
+    id: string;
+    _id: string;
+    numericId: number;
+};

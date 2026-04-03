@@ -41,6 +41,7 @@ const STRING_NAME_RULES: Record<string, NameRule> = {
   firstname: { fakerPath: ['person', 'firstName'] },
   fullname: { fakerPath: ['person', 'fullName'] },
   homepage: { fakerPath: ['internet', 'url'] },
+  id: { fakerPath: ['string', 'uuid'] },
   jobtitle: { fakerPath: ['person', 'jobTitle'] },
   lastname: { fakerPath: ['person', 'lastName'] },
   latitude: { fakerPath: ['location', 'latitude'] },
