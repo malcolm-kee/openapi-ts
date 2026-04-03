@@ -18,7 +18,7 @@ export const defaultConfig: FakerJsFakerPlugin['Config'] = {
       defaultValue: {
         case: plugin.config.case ?? 'camelCase',
         enabled: true,
-        name: 'v{{name}}',
+        name: 'fake{{name}}',
       },
       mappers,
       value: plugin.config.definitions,

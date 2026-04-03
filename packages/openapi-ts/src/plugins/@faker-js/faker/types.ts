@@ -44,17 +44,6 @@ export type UserConfig = Plugin.Name<'@faker-js/faker'> &
            */
           name?: NameTransformer;
         };
-    /**
-     * Faker locale for generated data.
-     *
-     * @default 'en'
-     */
-    locale?: string;
-    /**
-     * Seed for deterministic output. When set, Faker will produce
-     * the same values across runs.
-     */
-    seed?: number;
   };
 
 export type Config = Plugin.Name<'@faker-js/faker'> &
@@ -65,10 +54,6 @@ export type Config = Plugin.Name<'@faker-js/faker'> &
     case: Casing;
     /** Configuration for reusable schema definitions. */
     definitions: NamingOptions & FeatureToggle;
-    /** Faker locale for generated data. */
-    locale: string;
-    /** Seed for deterministic output. */
-    seed?: number;
   };
 
 export type FakerJsFakerPlugin = DefinePlugin<UserConfig, Config, IApi>;

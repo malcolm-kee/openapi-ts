@@ -1482,6 +1482,15 @@ importers:
         specifier: 0.16.0
         version: 0.16.0
 
+  packages/openapi-ts-tests/faker/v1:
+    devDependencies:
+      '@hey-api/openapi-ts':
+        specifier: workspace:*
+        version: link:../../../openapi-ts
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
   packages/openapi-ts-tests/main:
     devDependencies:
       '@angular-devkit/build-angular':
