@@ -34,12 +34,13 @@ export function exportAst({
     }),
   );
 
-  // Look up the TypeScript type for this schema (e.g. Foo, Bar)
+  // Look up the TypeScript type for this schema (e.g. Foo, Bar, or PostFooResponse)
   const typeSymbol = plugin.querySymbol({
     category: 'type',
-    resource: 'definition',
+    resource: meta.resource,
     resourceId: meta.resourceId,
     tool: 'typescript',
+    ...(meta.role ? { role: meta.role } : undefined),
   });
 
   // Build arrow function, only adding options param when the expression uses faker

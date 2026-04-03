@@ -44,6 +44,37 @@ export type UserConfig = Plugin.Name<'@faker-js/faker'> &
            */
           name?: NameTransformer;
         };
+    /**
+     * Configuration for operation response factories.
+     *
+     * Can be:
+     * - `boolean`: Shorthand for `{ enabled: boolean }`
+     * - `string` or `function`: Shorthand for `{ name: string | function }`
+     * - `object`: Full configuration object
+     */
+    responses?:
+      | boolean
+      | NameTransformer
+      | {
+          /**
+           * Casing convention for generated names.
+           *
+           * @default 'camelCase'
+           */
+          case?: Casing;
+          /**
+           * Whether this feature is enabled.
+           *
+           * @default true
+           */
+          enabled?: boolean;
+          /**
+           * Naming pattern for generated names.
+           *
+           * @default 'fake{{name}}Response'
+           */
+          name?: NameTransformer;
+        };
   };
 
 export type Config = Plugin.Name<'@faker-js/faker'> &
@@ -54,6 +85,8 @@ export type Config = Plugin.Name<'@faker-js/faker'> &
     case: Casing;
     /** Configuration for reusable schema definitions. */
     definitions: NamingOptions & FeatureToggle;
+    /** Configuration for operation response factories. */
+    responses: NamingOptions & FeatureToggle;
   };
 
 export type FakerJsFakerPlugin = DefinePlugin<UserConfig, Config, IApi>;

@@ -25,7 +25,7 @@ export function createProcessor(
     }
 
     for (const hook of extractorHooks) {
-      const result = hook?.(ctx);
+      const result = typeof hook === 'function' ? hook(ctx) : hook;
       if (result) {
         process({
           namingAnchor: processor.context.anchor,

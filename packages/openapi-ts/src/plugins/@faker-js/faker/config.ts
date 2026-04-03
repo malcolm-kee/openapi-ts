@@ -22,6 +22,16 @@ export const defaultConfig: FakerJsFakerPlugin['Config'] = {
       mappers,
       value: plugin.config.definitions,
     });
+
+    plugin.config.responses = context.valueToObject({
+      defaultValue: {
+        case: plugin.config.case ?? 'camelCase',
+        enabled: true,
+        name: 'fake{{name}}Response',
+      },
+      mappers,
+      value: plugin.config.responses,
+    });
   },
   tags: ['mocker'],
 };

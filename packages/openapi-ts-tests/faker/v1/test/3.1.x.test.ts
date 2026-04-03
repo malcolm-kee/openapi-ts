@@ -64,6 +64,21 @@ describe(`OpenAPI ${version}`, () => {
       description:
         'infers faker helpers from property names with ancestor context and constraint merging',
     },
+    {
+      config: createConfig({
+        input: 'faker-m5.yaml',
+        output: 'faker-m5',
+        plugins: ['@hey-api/typescript', '@faker-js/faker'],
+      }),
+      description: 'generates per-operation response factories with return type annotations',
+    },
+    {
+      config: createConfig({
+        input: 'faker-m5.yaml',
+        output: 'faker-m5-untyped',
+      }),
+      description: 'generates per-operation response factories without return type annotations',
+    },
   ];
 
   it.each(scenarios)('$description', async ({ config }) => {
