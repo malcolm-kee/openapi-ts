@@ -4,11 +4,14 @@ import { createSchemaProcessor, createSchemaWalker, pathToJsonPointer } from '@h
 
 import { exportAst } from '../shared/export';
 import type { ProcessorContext, ProcessorResult } from '../shared/processor';
-import type { FakerResult } from '../shared/types';
+import type { EmitTracking, FakerResult } from '../shared/types';
 import type { FakerJsFakerPlugin } from '../types';
 import { createVisitor } from './walker';
 
-export function createProcessor(plugin: FakerJsFakerPlugin['Instance']): ProcessorResult {
+export function createProcessor(
+  plugin: FakerJsFakerPlugin['Instance'],
+  tracking: EmitTracking,
+): ProcessorResult {
   const processor = createSchemaProcessor();
 
   const extractorHooks: ReadonlyArray<NonNullable<Hooks['schemas']>['shouldExtract']> = [
@@ -42,7 +45,7 @@ export function createProcessor(plugin: FakerJsFakerPlugin['Instance']): Process
     const shouldExport = ctx.export !== false;
 
     return processor.withContext({ anchor: ctx.namingAnchor, tags: ctx.tags }, () => {
-      const visitor = createVisitor({ plugin, schemaExtractor: extractor });
+      const visitor = createVisitor({ plugin, schemaExtractor: extractor, tracking });
       const walk = createSchemaWalker(visitor);
 
       const result = walk(ctx.schema, {

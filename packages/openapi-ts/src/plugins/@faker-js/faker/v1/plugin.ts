@@ -1,6 +1,7 @@
 import { pathToJsonPointer } from '@hey-api/shared';
 
 import { $ } from '../../../../ts-dsl';
+import type { EmitTracking } from '../shared/types';
 import type { FakerJsFakerPlugin } from '../types';
 import { createProcessor } from './processor';
 
@@ -43,34 +44,8 @@ export const handlerV1: FakerJsFakerPlugin['Handler'] = ({ plugin }) => {
     );
   plugin.node($.type.alias(optionsSymbol).export().type(optionsType));
 
-  // Emit helper: const resolveCondition = (condition: boolean | number, faker: Faker): boolean =>
-  //   condition === true || typeof condition === 'number' && faker.datatype.boolean({ probability: condition })
-  const conditionParamType = $.type.or($.type('boolean'), $.type('number'));
-  const resolveConditionFn = $.func()
-    .arrow()
-    .param('condition', (p) => p.type(conditionParamType))
-    .param('faker', (p) => p.type($.type(fakerTypeSymbol)))
-    .returns('boolean')
-    .do(
-      $.return(
-        $.binary(
-          $('condition').eq($.literal(true)),
-          '||',
-          $(
-            $.binary(
-              $('condition').typeofExpr().eq($.literal('number')),
-              '&&',
-              $('faker')
-                .attr('datatype')
-                .attr('boolean')
-                .call($.object().prop('probability', $('condition'))),
-            ),
-          ),
-        ),
-      ),
-    );
-  const resolveConditionSymbol = plugin.symbol('resolveCondition');
-  plugin.node($.const(resolveConditionSymbol).assign(resolveConditionFn));
+  // Reserve slot for resolveCondition — only filled if actually referenced
+  const resolveConditionSlot = plugin.node(null);
 
   // Emit helper: const ensureFaker = (options?: Options): Faker => options?.faker ?? faker
   const fakerSymbol = plugin.external('@faker-js/faker.faker');
@@ -82,7 +57,8 @@ export const handlerV1: FakerJsFakerPlugin['Handler'] = ({ plugin }) => {
   const ensureFakerSymbol = plugin.symbol('ensureFaker');
   plugin.node($.const(ensureFakerSymbol).assign(ensureFakerFn));
 
-  const processor = createProcessor(plugin);
+  const tracking: EmitTracking = { needsResolveCondition: false };
+  const processor = createProcessor(plugin, tracking);
 
   plugin.forEach('parameter', 'requestBody', 'schema', (event) => {
     switch (event.type) {
@@ -127,4 +103,34 @@ export const handlerV1: FakerJsFakerPlugin['Handler'] = ({ plugin }) => {
         break;
     }
   });
+
+  // Conditionally emit resolveCondition helper only when referenced
+  if (tracking.needsResolveCondition) {
+    const conditionParamType = $.type.or($.type('boolean'), $.type('number'));
+    const resolveConditionFn = $.func()
+      .arrow()
+      .param('condition', (p) => p.type(conditionParamType))
+      .param('faker', (p) => p.type($.type(fakerTypeSymbol)))
+      .returns('boolean')
+      .do(
+        $.return(
+          $.binary(
+            $('condition').eq($.literal(true)),
+            '||',
+            $(
+              $.binary(
+                $('condition').typeofExpr().eq($.literal('number')),
+                '&&',
+                $('faker')
+                  .attr('datatype')
+                  .attr('boolean')
+                  .call($.object().prop('probability', $('condition'))),
+              ),
+            ),
+          ),
+        ),
+      );
+    const resolveConditionSymbol = plugin.symbol('resolveCondition');
+    plugin.node($.const(resolveConditionSymbol).assign(resolveConditionFn), resolveConditionSlot);
+  }
 };

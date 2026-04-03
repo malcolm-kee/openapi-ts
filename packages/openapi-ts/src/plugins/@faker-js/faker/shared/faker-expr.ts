@@ -1,5 +1,5 @@
 import { $ } from '../../../../ts-dsl';
-import type { FakerWalkerContext } from './types';
+import type { EmitTracking, FakerWalkerContext } from './types';
 
 /**
  * Creates the shared walker context with the faker accessor expression.
@@ -7,7 +7,7 @@ import type { FakerWalkerContext } from './types';
  * The accessor is `ensureFaker(options)` — the helper resolves
  * `options?.faker ?? faker` so each call site stays clean.
  */
-export function createFakerWalkerContext(): FakerWalkerContext {
+export function createFakerWalkerContext(tracking: EmitTracking): FakerWalkerContext {
   const optionsId = $('options');
 
   // ensureFaker(options)
@@ -16,5 +16,6 @@ export function createFakerWalkerContext(): FakerWalkerContext {
   return {
     fakerAccessor,
     optionsId,
+    tracking,
   };
 }

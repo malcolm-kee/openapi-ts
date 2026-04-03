@@ -58,8 +58,8 @@ export const fakePet = (options?: Options): Pet => ({
     ...!resolveCondition(options?.includeOptional ?? true, ensureFaker(options)) ? {} : { tag: fakeTag(options) }
 });
 
-export const fakePetOrTag = (options?: Options): PetOrTag => fakePet(options);
+export const fakePetOrTag = (options?: Options): PetOrTag => ensureFaker(options).helpers.arrayElement([() => fakePet(options), () => fakeTag(options)])();
 
-export const fakeStringOrNumber = (options?: Options): StringOrNumber => ensureFaker(options).string.sample();
+export const fakeStringOrNumber = (options?: Options): StringOrNumber => ensureFaker(options).helpers.arrayElement([() => ensureFaker(options).string.sample(), () => ensureFaker(options).number.float()])();
 
 export const fakePetList = (options?: Options): PetList => ensureFaker(options).helpers.multiple(() => fakePet(options));
