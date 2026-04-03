@@ -34,13 +34,6 @@ export function exportAst({
     }),
   );
 
-  const fakerTypeSymbol = plugin.external('@faker-js/faker.Faker');
-
-  // { faker?: Faker }
-  const optionsType = $.type
-    .object()
-    .prop('faker', (p) => p.optional().type($.type(fakerTypeSymbol)));
-
   // Look up the TypeScript type for this schema (e.g. Foo, Bar)
   const typeSymbol = plugin.querySymbol({
     category: 'type',
@@ -52,7 +45,7 @@ export function exportAst({
   // Build arrow function, only adding options param when the expression uses faker
   const arrowFn = $.func()
     .arrow()
-    .$if(final.usesFaker, (f) => f.param('options', (p) => p.optional().type(optionsType)))
+    .$if(final.usesFaker, (f) => f.param('options', (p) => p.optional().type('Options')))
     .$if(typeSymbol, (f) => f.returns($.type(typeSymbol!)))
     .do($.return(final.expression));
 

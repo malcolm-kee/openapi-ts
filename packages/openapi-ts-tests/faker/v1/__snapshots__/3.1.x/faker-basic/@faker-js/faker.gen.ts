@@ -2,14 +2,20 @@
 
 import { faker, type Faker } from '@faker-js/faker';
 
-export const fakeFoo = (options?: {
+export type Options = {
     faker?: Faker;
-}) => ({
-    name: (options?.faker ?? faker).string.sample(),
-    age: (options?.faker ?? faker).number.int(),
-    active: (options?.faker ?? faker).datatype.boolean()
+    includeOptional?: 'always' | 'random' | false;
+    useDefault?: 'always' | 'random' | false;
+};
+
+const resolveCondition = (condition: 'always' | 'random' | false, faker: Faker): boolean => condition === 'always' || condition === 'random' && faker.datatype.boolean();
+
+const ensureFaker = (options?: Options): Faker => options?.faker ?? faker;
+
+export const fakeFoo = (options?: Options) => ({
+    name: ensureFaker(options).string.sample(),
+    age: ensureFaker(options).number.int(),
+    ...!resolveCondition(options?.includeOptional ?? 'always', ensureFaker(options)) ? {} : { active: ensureFaker(options).datatype.boolean() }
 });
 
-export const fakeBar = (options?: {
-    faker?: Faker;
-}) => (options?.faker ?? faker).helpers.arrayElement(['baz', 'qux']);
+export const fakeBar = (options?: Options) => ensureFaker(options).helpers.arrayElement(['baz', 'qux']);

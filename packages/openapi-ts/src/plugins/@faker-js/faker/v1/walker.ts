@@ -26,22 +26,16 @@ const LITERAL_FALSE: FakerResult = { expression: $('undefined'), usesFaker: fals
 export function createVisitor(
   config: VisitorConfig,
 ): SchemaVisitor<FakerResult, FakerJsFakerPlugin['Instance']> {
-  const { plugin, schemaExtractor } = config;
-  const fakerCtx: FakerWalkerContext = createFakerWalkerContext(plugin);
+  const { schemaExtractor } = config;
+  const fakerCtx: FakerWalkerContext = createFakerWalkerContext();
 
   return {
     applyModifiers(result) {
-      // M1: no-op — no nullable/optional modifiers yet
       return result;
     },
     array(schema, ctx, walk) {
       return {
-        expression: arrayToExpression({
-          fakerCtx,
-          schema,
-          walk,
-          walkerCtx: ctx,
-        }),
+        expression: arrayToExpression({ fakerCtx, schema, walk, walkerCtx: ctx }),
         usesFaker: true,
       };
     },
@@ -103,9 +97,24 @@ export function createVisitor(
     },
     object(schema, ctx, walk) {
       return {
-        expression: objectToExpression({ schema, walk, walkerCtx: ctx }),
+        expression: objectToExpression({ fakerCtx, schema, walk, walkerCtx: ctx }),
         usesFaker: true,
       };
+    },
+    postProcess(result, schema) {
+      // resolveCondition(options?.useDefault ?? false, faker) ? <default> : <faker>
+      if (schema.default !== undefined && result.usesFaker) {
+        const condition = $('resolveCondition').call(
+          $.binary($(fakerCtx.optionsId).attr('useDefault').optional(), '??', $.literal(false)),
+          fakerCtx.fakerAccessor,
+        );
+        const defaultExpr = $.fromValue(schema.default);
+        return {
+          expression: $.ternary(condition).do(defaultExpr).otherwise(result.expression),
+          usesFaker: true,
+        };
+      }
+      return result;
     },
     reference($ref, _schema, ctx) {
       const query: SymbolMeta = {
@@ -122,9 +131,9 @@ export function createVisitor(
         usesFaker: true,
       };
     },
-    string() {
+    string(schema) {
       return {
-        expression: stringToExpression(fakerCtx),
+        expression: stringToExpression(fakerCtx, schema),
         usesFaker: true,
       };
     },
@@ -142,15 +151,28 @@ export function createVisitor(
     undefined() {
       return LITERAL_FALSE;
     },
-    union(items) {
-      if (items.length > 0) {
-        return items[0]!;
+    union(items, schemas) {
+      if (items.length === 0) {
+        return LITERAL_FALSE;
       }
-      return LITERAL_FALSE;
+      // If one variant is null, randomly choose between non-null and null
+      const nullIndex = schemas.findIndex((s) => s.type === 'null');
+      if (nullIndex !== -1 && items.length > 1) {
+        const nonNullItems = items.filter((_, i) => i !== nullIndex);
+        const chosen = nonNullItems[0]!;
+        return {
+          expression: $.ternary(fakerCtx.fakerAccessor.attr('datatype').attr('boolean').call())
+            .do(chosen.expression)
+            .otherwise($.fromValue(null)),
+          usesFaker: true,
+        };
+      }
+      return items[0]!;
     },
     unknown() {
       return LITERAL_FALSE;
     },
+
     void() {
       return LITERAL_FALSE;
     },

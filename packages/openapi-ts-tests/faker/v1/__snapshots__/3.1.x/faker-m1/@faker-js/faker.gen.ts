@@ -4,64 +4,52 @@ import { faker, type Faker } from '@faker-js/faker';
 
 import type { Active, Anything, Nothing, NumericEnum, Pet, PetList, PetOrTag, Price, Quantity, StatusWithNull, StringOrNumber, Tag, Tags } from '../types.gen';
 
-export const fakePrice = (options?: {
+export type Options = {
     faker?: Faker;
-}): Price => (options?.faker ?? faker).number.float();
+    includeOptional?: 'always' | 'random' | false;
+    useDefault?: 'always' | 'random' | false;
+};
 
-export const fakeQuantity = (options?: {
-    faker?: Faker;
-}): Quantity => (options?.faker ?? faker).number.int();
+const resolveCondition = (condition: 'always' | 'random' | false, faker: Faker): boolean => condition === 'always' || condition === 'random' && faker.datatype.boolean();
 
-export const fakeActive = (options?: {
-    faker?: Faker;
-}): Active => (options?.faker ?? faker).datatype.boolean();
+const ensureFaker = (options?: Options): Faker => options?.faker ?? faker;
+
+export const fakePrice = (options?: Options): Price => ensureFaker(options).number.float();
+
+export const fakeQuantity = (options?: Options): Quantity => ensureFaker(options).number.int();
+
+export const fakeActive = (options?: Options): Active => ensureFaker(options).datatype.boolean();
 
 export const fakeNothing = (): Nothing => null;
 
 export const fakeAnything = (): Anything => undefined;
 
-export const fakeStatusWithNull = (options?: {
-    faker?: Faker;
-}): StatusWithNull => (options?.faker ?? faker).helpers.arrayElement([
+export const fakeStatusWithNull = (options?: Options): StatusWithNull => ensureFaker(options).helpers.arrayElement([
     'active',
     'inactive',
     null
 ]);
 
-export const fakeNumericEnum = (options?: {
-    faker?: Faker;
-}): NumericEnum => (options?.faker ?? faker).helpers.arrayElement([
+export const fakeNumericEnum = (options?: Options): NumericEnum => ensureFaker(options).helpers.arrayElement([
     1,
     2,
     3
 ]);
 
-export const fakeTags = (options?: {
-    faker?: Faker;
-}): Tags => (options?.faker ?? faker).helpers.multiple(() => (options?.faker ?? faker).string.sample());
+export const fakeTags = (options?: Options): Tags => ensureFaker(options).helpers.multiple(() => ensureFaker(options).string.sample());
 
-export const fakeTag = (options?: {
-    faker?: Faker;
-}): Tag => ({
-    id: (options?.faker ?? faker).number.int(),
-    label: (options?.faker ?? faker).string.sample()
+export const fakeTag = (options?: Options): Tag => ({
+    id: ensureFaker(options).number.int(),
+    label: ensureFaker(options).string.sample()
 });
 
-export const fakePet = (options?: {
-    faker?: Faker;
-}): Pet => ({
-    name: (options?.faker ?? faker).string.sample(),
-    tag: fakeTag(options)
+export const fakePet = (options?: Options): Pet => ({
+    name: ensureFaker(options).string.sample(),
+    ...!resolveCondition(options?.includeOptional ?? 'always', ensureFaker(options)) ? {} : { tag: fakeTag(options) }
 });
 
-export const fakePetOrTag = (options?: {
-    faker?: Faker;
-}): PetOrTag => fakePet(options);
+export const fakePetOrTag = (options?: Options): PetOrTag => fakePet(options);
 
-export const fakeStringOrNumber = (options?: {
-    faker?: Faker;
-}): StringOrNumber => (options?.faker ?? faker).string.sample();
+export const fakeStringOrNumber = (options?: Options): StringOrNumber => ensureFaker(options).string.sample();
 
-export const fakePetList = (options?: {
-    faker?: Faker;
-}): PetList => (options?.faker ?? faker).helpers.multiple(() => fakePet(options));
+export const fakePetList = (options?: Options): PetList => ensureFaker(options).helpers.multiple(() => fakePet(options));
