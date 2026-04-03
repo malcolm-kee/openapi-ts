@@ -39,7 +39,7 @@ export function stringToExpression(
   // faker requires both min and max — fill in sensible defaults when only one is specified
   if (schema.minLength !== undefined || schema.maxLength !== undefined) {
     const min = schema.minLength ?? 0;
-    const max = schema.maxLength ?? 1000;
+    const max = schema.maxLength ?? 100;
     const lengthObj = $.object().prop('min', $.literal(min)).prop('max', $.literal(max));
     return ctx.fakerAccessor
       .attr('string')

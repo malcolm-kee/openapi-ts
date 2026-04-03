@@ -38,7 +38,7 @@ export function arrayToExpression({
   // faker requires both min and max — fill in sensible defaults when only one is specified
   if (schema.minItems !== undefined || schema.maxItems !== undefined) {
     const min = schema.minItems ?? 0;
-    const max = schema.maxItems ?? 1000;
+    const max = schema.maxItems ?? 100;
     const countObj = $.object().prop('min', $.literal(min)).prop('max', $.literal(max));
     const options = $.object().prop('count', countObj);
     return fakerCtx.fakerAccessor.attr('helpers').attr('multiple').call(callback, options);

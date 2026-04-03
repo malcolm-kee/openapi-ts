@@ -1,14 +1,16 @@
 ---
-title: Faker
-description: Generate realistic mock data factories from OpenAPI with the Faker plugin for openapi-ts. Fully compatible with all core features.
+title: Faker v10 Plugin
+description: Generate realistic mock data factories from OpenAPI with the Faker v10 plugin for openapi-ts. Fully compatible with all core features.
 ---
 
 <script setup lang="ts">
 import Heading from '@components/Heading.vue';
+import FakerVersionSwitcher from '@versions/FakerVersionSwitcher.vue';
 </script>
 
 <Heading>
-  <h1>Faker</h1>
+  <h1>Faker<span class="sr-only"> v10</span></h1>
+  <FakerVersionSwitcher />
 </Heading>
 
 ### About
@@ -19,6 +21,7 @@ The Faker plugin for Hey API generates factory functions from your OpenAPI spec 
 
 ## Features
 
+- Faker v10 support
 - seamless integration with `@hey-api/openapi-ts` ecosystem
 - factory functions for reusable schema definitions and operation responses
 - smart property name inference for realistic data (e.g. `email` &rarr; `faker.internet.email()`)
@@ -211,14 +214,27 @@ export default {
 
 See the [Faker localization guide](https://fakerjs.dev/guide/localization) for available locales.
 
+## Deterministic Results
+
+For snapshot testing or reproducible output, you can seed the faker instance and fix the reference date to ensure deterministic results.
+
+```ts
+import { faker } from '@faker-js/faker';
+
+faker.seed(42);
+faker.setDefaultRefDate('2026-01-01T00:00:00.000Z');
+
+const data = fakeFoo({ faker });
+// always returns the same output
+```
+
 ## Custom Faker Instance
 
-For runtime locale switching or seeded deterministic output, you can pass your own faker instance via the `faker` option.
+You can pass your own [faker instance](https://fakerjs.dev/api/faker.html) via the `faker` option for runtime locale switching or other customizations.
 
 ```ts
 import { faker } from '@faker-js/faker/locale/de';
 
-faker.seed(42);
 const data = fakeFoo({ faker });
 ```
 

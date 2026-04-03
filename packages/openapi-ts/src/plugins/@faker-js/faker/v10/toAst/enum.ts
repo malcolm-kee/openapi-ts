@@ -16,7 +16,7 @@ export function enumToExpression(
     if (item.const === null || item.type === 'null') {
       members.push($.fromValue(null));
     } else if (item.const !== undefined) {
-      members.push($.literal(item.const as string));
+      members.push($.literal(item.const as string | number));
     }
   }
 

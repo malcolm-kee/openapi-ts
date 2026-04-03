@@ -23,6 +23,9 @@ export function numberToExpression(
   let min: number | undefined;
   let max: number | undefined;
 
+  // For floats, exclusive bounds are passed as-is to faker's min/max options,
+  // which treats them as inclusive. This is technically not strictly exclusive,
+  // but fine in practice since the chance of hitting the exact bound is negligible.
   if (schema.exclusiveMinimum !== undefined) {
     min = isInteger ? schema.exclusiveMinimum + 1 : schema.exclusiveMinimum;
   } else if (schema.minimum !== undefined) {
