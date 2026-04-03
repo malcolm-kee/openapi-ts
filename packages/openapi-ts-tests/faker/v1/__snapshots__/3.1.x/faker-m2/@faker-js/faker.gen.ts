@@ -90,12 +90,12 @@ export const fakeObjectWithDefaultProp = (options?: Options): ObjectWithDefaultP
 export const fakeUserProfile = (options?: Options): UserProfile => ({
     id: ensureFaker(options).number.int(),
     name: ensureFaker(options).string.sample(),
-    ...!resolveCondition(options?.includeOptional ?? true, ensureFaker(options)) ? {} : { bio: ensureFaker(options).string.sample() },
-    ...!resolveCondition(options?.includeOptional ?? true, ensureFaker(options)) ? {} : { age: ensureFaker(options).number.int() }
+    ...!resolveCondition(options?.includeOptional ?? true, ensureFaker(options)) ? {} : { bio: ensureFaker(options).lorem.sentence() },
+    ...!resolveCondition(options?.includeOptional ?? true, ensureFaker(options)) ? {} : { age: ensureFaker(options).number.int({ min: 1, max: 120 }) }
 });
 
 export const fakeAddress = (options?: Options): Address => ({
-    street: ensureFaker(options).string.alpha({ length: { min: 1, max: 200 } }),
+    street: ensureFaker(options).location.streetAddress(),
     zip: fakeZipCode(options)
 });
 

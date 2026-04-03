@@ -11,6 +11,7 @@ import type { FakerJsFakerPlugin } from '../types';
 import { arrayToExpression } from './toAst/array';
 import { booleanToExpression } from './toAst/boolean';
 import { enumToExpression } from './toAst/enum';
+import { propertyNameFromPath } from './toAst/nameRules';
 import { numberToExpression } from './toAst/number';
 import { objectToExpression } from './toAst/object';
 import { stringToExpression } from './toAst/string';
@@ -65,9 +66,10 @@ export function createVisitor(
       );
       return { expression, usesFaker: !!hasMembers };
     },
-    integer(schema) {
+    integer(schema, ctx) {
+      const nameInfo = propertyNameFromPath(fromRef(ctx.path));
       return {
-        expression: numberToExpression(fakerCtx, schema),
+        expression: numberToExpression(fakerCtx, schema, nameInfo),
         usesFaker: true,
       };
     },
@@ -147,9 +149,10 @@ export function createVisitor(
     null() {
       return { expression: $.fromValue(null), usesFaker: false };
     },
-    number(schema) {
+    number(schema, ctx) {
+      const nameInfo = propertyNameFromPath(fromRef(ctx.path));
       return {
-        expression: numberToExpression(fakerCtx, schema),
+        expression: numberToExpression(fakerCtx, schema, nameInfo),
         usesFaker: true,
       };
     },
@@ -190,9 +193,10 @@ export function createVisitor(
         usesFaker: true,
       };
     },
-    string(schema) {
+    string(schema, ctx) {
+      const nameInfo = propertyNameFromPath(fromRef(ctx.path));
       return {
-        expression: stringToExpression(fakerCtx, schema),
+        expression: stringToExpression(fakerCtx, schema, nameInfo),
         usesFaker: true,
       };
     },

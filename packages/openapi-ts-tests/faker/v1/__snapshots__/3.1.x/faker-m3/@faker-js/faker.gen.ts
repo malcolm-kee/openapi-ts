@@ -24,7 +24,7 @@ const ensureFaker = (options?: Options): Faker => options?.faker ?? faker;
 
 export const fakePet = (options?: Options): Pet => ({
     name: ensureFaker(options).string.sample(),
-    age: ensureFaker(options).number.int()
+    age: ensureFaker(options).number.int({ min: 1, max: 120 })
 });
 
 export const fakeTag = (options?: Options): Tag => ({

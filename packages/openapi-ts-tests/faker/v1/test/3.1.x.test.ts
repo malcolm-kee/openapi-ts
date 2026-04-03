@@ -55,6 +55,15 @@ describe(`OpenAPI ${version}`, () => {
       }),
       description: 'handles union randomization, allOf intersections, and discriminated unions',
     },
+    {
+      config: createConfig({
+        input: 'faker-m4.yaml',
+        output: 'faker-m4',
+        plugins: ['@hey-api/typescript', '@faker-js/faker'],
+      }),
+      description:
+        'infers faker helpers from property names with ancestor context and constraint merging',
+    },
   ];
 
   it.each(scenarios)('$description', async ({ config }) => {
