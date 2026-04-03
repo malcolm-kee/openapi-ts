@@ -14,6 +14,8 @@ export type Expression = MaybeTsDsl<ts.Expression>;
  */
 export interface FakerResult {
   expression: Expression;
+  /** Whether the expression directly references the local `f` accessor. */
+  usesAccessor: boolean;
   /** Whether the expression depends on the `options` parameter (faker accessor or $ref call). */
   usesFaker: boolean;
 }
@@ -31,7 +33,8 @@ export interface EmitTracking {
  */
 export interface FakerWalkerContext {
   /**
-   * The `(options?.faker ?? faker)` accessor expression.
+   * The `f` identifier — a local variable declared in each function body
+   * as `const f = options?.faker ?? faker`.
    * All leaf nodes chain `.attr()` / `.call()` on this.
    */
   fakerAccessor: ReturnType<typeof $.expr>;

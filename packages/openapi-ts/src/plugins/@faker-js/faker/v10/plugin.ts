@@ -52,16 +52,6 @@ export const handlerV10: FakerJsFakerPlugin['Handler'] = ({ plugin }) => {
   // Reserve slot for resolveCondition — only filled if actually referenced
   const resolveConditionSlot = plugin.node(null);
 
-  // Emit helper: const ensureFaker = (options?: Options): Faker => options?.faker ?? faker
-  const fakerSymbol = plugin.external(`${fakerPackagePath}.faker`);
-  const ensureFakerFn = $.func()
-    .arrow()
-    .param('options', (p) => p.optional().type('Options'))
-    .returns($.type(fakerTypeSymbol))
-    .do($.return($.binary($('options').attr('faker').optional(), '??', $(fakerSymbol))));
-  const ensureFakerSymbol = plugin.symbol('ensureFaker');
-  plugin.node($.const(ensureFakerSymbol).assign(ensureFakerFn));
-
   const tracking: EmitTracking = { needsResolveCondition: false };
   const processor = createProcessor(plugin, tracking);
 

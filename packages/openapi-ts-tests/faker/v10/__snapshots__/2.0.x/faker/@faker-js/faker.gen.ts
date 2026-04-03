@@ -20,174 +20,322 @@ export type Options = {
 
 const resolveCondition = (condition: boolean | number, faker: Faker): boolean => condition === true || typeof condition === 'number' && faker.datatype.boolean({ probability: condition });
 
-const ensureFaker = (options?: Options): Faker => options?.faker ?? faker;
+export const fakePrice = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.number.float();
+};
 
-export const fakePrice = (options?: Options) => ensureFaker(options).number.float();
+export const fakeQuantity = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.number.int();
+};
 
-export const fakeQuantity = (options?: Options) => ensureFaker(options).number.int();
+export const fakeActive = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.datatype.boolean();
+};
 
-export const fakeActive = (options?: Options) => ensureFaker(options).datatype.boolean();
+export const fakeNumericEnum = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.helpers.arrayElement([
+        1,
+        2,
+        3
+    ]);
+};
 
-export const fakeNumericEnum = (options?: Options) => ensureFaker(options).helpers.arrayElement([
-    1,
-    2,
-    3
-]);
+export const fakeEmail = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.internet.email();
+};
 
-export const fakeEmail = (options?: Options) => ensureFaker(options).internet.email();
+export const fakeDateTime = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.date.recent().toISOString();
+};
 
-export const fakeDateTime = (options?: Options) => ensureFaker(options).date.recent().toISOString();
+export const fakeDateOnly = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.date.recent().toISOString().slice(0, 10);
+};
 
-export const fakeDateOnly = (options?: Options) => ensureFaker(options).date.recent().toISOString().slice(0, 10);
+export const fakeUniqueId = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.string.uuid();
+};
 
-export const fakeUniqueId = (options?: Options) => ensureFaker(options).string.uuid();
+export const fakeWebsite = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.internet.url();
+};
 
-export const fakeWebsite = (options?: Options) => ensureFaker(options).internet.url();
+export const fakeIPv4Address = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.internet.ipv4();
+};
 
-export const fakeIPv4Address = (options?: Options) => ensureFaker(options).internet.ipv4();
+export const fakeIPv6Address = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.internet.ipv6();
+};
 
-export const fakeIPv6Address = (options?: Options) => ensureFaker(options).internet.ipv6();
+export const fakeZipCode = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.helpers.fromRegExp('^\\d{5}(-\\d{4})?$');
+};
 
-export const fakeZipCode = (options?: Options) => ensureFaker(options).helpers.fromRegExp('^\\d{5}(-\\d{4})?$');
+export const fakeShortName = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.string.alpha({ length: { min: 2, max: 50 } });
+};
 
-export const fakeShortName = (options?: Options) => ensureFaker(options).string.alpha({ length: { min: 2, max: 50 } });
+export const fakeMinOnlyString = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.string.alpha({ length: { min: 10, max: 1000 } });
+};
 
-export const fakeMinOnlyString = (options?: Options) => ensureFaker(options).string.alpha({ length: { min: 10, max: 1000 } });
+export const fakeMaxOnlyString = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.string.alpha({ length: { min: 0, max: 5 } });
+};
 
-export const fakeMaxOnlyString = (options?: Options) => ensureFaker(options).string.alpha({ length: { min: 0, max: 5 } });
+export const fakeEmailWithLength = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.internet.email();
+};
 
-export const fakeEmailWithLength = (options?: Options) => ensureFaker(options).internet.email();
+export const fakeBoundedInt = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.number.int({ min: 1, max: 100 });
+};
 
-export const fakeBoundedInt = (options?: Options) => ensureFaker(options).number.int({ min: 1, max: 100 });
+export const fakeBoundedFloat = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.number.float({ min: 0, max: 1 });
+};
 
-export const fakeBoundedFloat = (options?: Options) => ensureFaker(options).number.float({ min: 0, max: 1 });
+export const fakeExclusiveInt = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.number.int({ min: 1, max: 9 });
+};
 
-export const fakeExclusiveInt = (options?: Options) => ensureFaker(options).number.int({ min: 1, max: 9 });
+export const fakeMinOnlyNumber = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.number.float({ min: 0 });
+};
 
-export const fakeMinOnlyNumber = (options?: Options) => ensureFaker(options).number.float({ min: 0 });
+export const fakeMaxOnlyInt = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.number.int({ max: 999 });
+};
 
-export const fakeMaxOnlyInt = (options?: Options) => ensureFaker(options).number.int({ max: 999 });
+export const fakeExclusiveFloat = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.number.float({ min: 0, max: 1 });
+};
 
-export const fakeExclusiveFloat = (options?: Options) => ensureFaker(options).number.float({ min: 0, max: 1 });
+export const fakeExclusiveFloatNarrow = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.number.float({ min: 10.1, max: 10.2 });
+};
 
-export const fakeExclusiveFloatNarrow = (options?: Options) => ensureFaker(options).number.float({ min: 10.1, max: 10.2 });
+export const fakeTags = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.helpers.multiple(() => f.string.sample());
+};
 
-export const fakeTags = (options?: Options) => ensureFaker(options).helpers.multiple(() => ensureFaker(options).string.sample());
+export const fakeTagList = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.helpers.multiple(() => f.string.sample(), { count: { min: 1, max: 10 } });
+};
 
-export const fakeTagList = (options?: Options) => ensureFaker(options).helpers.multiple(() => ensureFaker(options).string.sample(), { count: { min: 1, max: 10 } });
+export const fakeMinOnlyArray = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.helpers.multiple(() => f.number.int(), { count: { min: 3, max: 1000 } });
+};
 
-export const fakeMinOnlyArray = (options?: Options) => ensureFaker(options).helpers.multiple(() => ensureFaker(options).number.int(), { count: { min: 3, max: 1000 } });
+export const fakeMaxOnlyArray = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.helpers.multiple(() => f.string.sample(), { count: { min: 0, max: 5 } });
+};
 
-export const fakeMaxOnlyArray = (options?: Options) => ensureFaker(options).helpers.multiple(() => ensureFaker(options).string.sample(), { count: { min: 0, max: 5 } });
+export const fakeDefaultString = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return resolveCondition(options?.useDefault ?? false, f) ? 'unknown' : f.string.sample();
+};
 
-export const fakeDefaultString = (options?: Options) => resolveCondition(options?.useDefault ?? false, ensureFaker(options)) ? 'unknown' : ensureFaker(options).string.sample();
+export const fakeDefaultInt = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return resolveCondition(options?.useDefault ?? false, f) ? 0 : f.number.int();
+};
 
-export const fakeDefaultInt = (options?: Options) => resolveCondition(options?.useDefault ?? false, ensureFaker(options)) ? 0 : ensureFaker(options).number.int();
+export const fakeDefaultBool = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return resolveCondition(options?.useDefault ?? false, f) ? true : f.datatype.boolean();
+};
 
-export const fakeDefaultBool = (options?: Options) => resolveCondition(options?.useDefault ?? false, ensureFaker(options)) ? true : ensureFaker(options).datatype.boolean();
+export const fakeDefaultOverridesConstraints = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return resolveCondition(options?.useDefault ?? false, f) ? 42 : f.number.int({ min: 1, max: 100 });
+};
 
-export const fakeDefaultOverridesConstraints = (options?: Options) => resolveCondition(options?.useDefault ?? false, ensureFaker(options)) ? 42 : ensureFaker(options).number.int({ min: 1, max: 100 });
+export const fakeNullableString = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.datatype.boolean() ? f.string.sample() : null;
+};
 
-export const fakeNullableString = (options?: Options) => ensureFaker(options).datatype.boolean() ? ensureFaker(options).string.sample() : null;
+export const fakeNullableInt = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.datatype.boolean() ? f.number.int() : null;
+};
 
-export const fakeNullableInt = (options?: Options) => ensureFaker(options).datatype.boolean() ? ensureFaker(options).number.int() : null;
+export const fakeObjectWithDefaultProp = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return {
+        name: f.string.sample(),
+        ...!resolveCondition(options?.includeOptional ?? true, f) ? {} : { status: resolveCondition(options?.useDefault ?? false, f) ? 'active' : f.string.sample() }
+    };
+};
 
-export const fakeObjectWithDefaultProp = (options?: Options) => ({
-    name: ensureFaker(options).string.sample(),
-    ...!resolveCondition(options?.includeOptional ?? true, ensureFaker(options)) ? {} : { status: resolveCondition(options?.useDefault ?? false, ensureFaker(options)) ? 'active' : ensureFaker(options).string.sample() }
-});
+export const fakeUserProfile = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return {
+        id: f.number.int(),
+        name: f.string.sample(),
+        ...!resolveCondition(options?.includeOptional ?? true, f) ? {} : { bio: f.lorem.sentence() },
+        ...!resolveCondition(options?.includeOptional ?? true, f) ? {} : { age: f.number.int({ min: 1, max: 120 }) }
+    };
+};
 
-export const fakeUserProfile = (options?: Options) => ({
-    id: ensureFaker(options).number.int(),
-    name: ensureFaker(options).string.sample(),
-    ...!resolveCondition(options?.includeOptional ?? true, ensureFaker(options)) ? {} : { bio: ensureFaker(options).lorem.sentence() },
-    ...!resolveCondition(options?.includeOptional ?? true, ensureFaker(options)) ? {} : { age: ensureFaker(options).number.int({ min: 1, max: 120 }) }
-});
+export const fakeTag = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return {
+        id: f.number.int(),
+        label: f.string.sample()
+    };
+};
 
-export const fakeTag = (options?: Options) => ({
-    id: ensureFaker(options).number.int(),
-    label: ensureFaker(options).string.sample()
-});
+export const fakePet = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return {
+        id: f.string.uuid(),
+        name: f.string.sample(),
+        ...!resolveCondition(options?.includeOptional ?? true, f) ? {} : { age: f.number.int({ min: 1, max: 120 }) },
+        ...!resolveCondition(options?.includeOptional ?? true, f) ? {} : { tag: fakeTag(options) }
+    };
+};
 
-export const fakePet = (options?: Options) => ({
-    id: ensureFaker(options).string.uuid(),
-    name: ensureFaker(options).string.sample(),
-    ...!resolveCondition(options?.includeOptional ?? true, ensureFaker(options)) ? {} : { age: ensureFaker(options).number.int({ min: 1, max: 120 }) },
-    ...!resolveCondition(options?.includeOptional ?? true, ensureFaker(options)) ? {} : { tag: fakeTag(options) }
-});
+export const fakeError = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return {
+        code: f.number.int(),
+        message: f.string.sample()
+    };
+};
 
-export const fakeError = (options?: Options) => ({
-    code: ensureFaker(options).number.int(),
-    message: ensureFaker(options).string.sample()
-});
+export const fakeAddress = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return {
+        street: f.location.streetAddress(),
+        zip: fakeZipCode(options)
+    };
+};
 
-export const fakeAddress = (options?: Options) => ({
-    street: ensureFaker(options).location.streetAddress(),
-    zip: fakeZipCode(options)
-});
+export const fakePerson = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return {
+        name: fakeShortName(options),
+        email: fakeEmail(options),
+        ...!resolveCondition(options?.includeOptional ?? true, f) ? {} : { address: fakeAddress(options) }
+    };
+};
 
-export const fakePerson = (options?: Options) => ({
-    name: fakeShortName(options),
-    email: fakeEmail(options),
-    ...!resolveCondition(options?.includeOptional ?? true, ensureFaker(options)) ? {} : { address: fakeAddress(options) }
-});
+export const fakePersonList = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.helpers.multiple(() => fakePerson(options), { count: { min: 1, max: 20 } });
+};
 
-export const fakePersonList = (options?: Options) => ensureFaker(options).helpers.multiple(() => fakePerson(options), { count: { min: 1, max: 20 } });
-
-export const fakePetList = (options?: Options) => ensureFaker(options).helpers.multiple(() => fakePet(options));
+export const fakePetList = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.helpers.multiple(() => fakePet(options));
+};
 
 export const fakeTeam = (options?: Options) => ({
     lead: fakePerson(options),
     config: fakeObjectWithDefaultProp(options)
 });
 
-export const fakePetWithOwner = (options?: Options) => ({
-    ...fakePet(options),
-    ...{
-        owner: ensureFaker(options).string.sample()
-    }
-});
+export const fakePetWithOwner = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return {
+        ...fakePet(options),
+        ...{
+            owner: f.string.sample()
+        }
+    };
+};
 
-export const fakePersonProfile = (options?: Options) => ({
-    firstName: ensureFaker(options).person.firstName(),
-    last_name: ensureFaker(options).person.lastName(),
-    email: ensureFaker(options).internet.email(),
-    phone: ensureFaker(options).phone.number(),
-    age: ensureFaker(options).number.int({ min: 1, max: 120 }),
-    city: ensureFaker(options).location.city(),
-    postalCode: ensureFaker(options).location.zipCode(),
-    bio: ensureFaker(options).lorem.sentence(),
-    website: ensureFaker(options).internet.url(),
-    zipCode: ensureFaker(options).helpers.fromRegExp('^\\d{5}$'),
-    username: ensureFaker(options).internet.username(),
-    someRandomField: ensureFaker(options).string.sample()
-});
+export const fakePersonProfile = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return {
+        firstName: f.person.firstName(),
+        last_name: f.person.lastName(),
+        email: f.internet.email(),
+        phone: f.phone.number(),
+        age: f.number.int({ min: 1, max: 120 }),
+        city: f.location.city(),
+        postalCode: f.location.zipCode(),
+        bio: f.lorem.sentence(),
+        website: f.internet.url(),
+        zipCode: f.helpers.fromRegExp('^\\d{5}$'),
+        username: f.internet.username(),
+        someRandomField: f.string.sample()
+    };
+};
 
-export const fakePersonWithConstraints = (options?: Options) => ({
-    age: ensureFaker(options).number.int({ min: 18, max: 120 }),
-    ...!resolveCondition(options?.includeOptional ?? true, ensureFaker(options)) ? {} : { seniorAge: ensureFaker(options).number.int({ min: 65, max: 100 }) }
-});
+export const fakePersonWithConstraints = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return {
+        age: f.number.int({ min: 18, max: 120 }),
+        ...!resolveCondition(options?.includeOptional ?? true, f) ? {} : { seniorAge: f.number.int({ min: 65, max: 100 }) }
+    };
+};
 
-export const fakeUser = (options?: Options) => ({
-    name: ensureFaker(options).person.fullName(),
-    email: ensureFaker(options).internet.email()
-});
+export const fakeUser = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return {
+        name: f.person.fullName(),
+        email: f.internet.email()
+    };
+};
 
-export const fakeCompany = (options?: Options) => ({
-    name: ensureFaker(options).company.name()
-});
+export const fakeCompany = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return {
+        name: f.company.name()
+    };
+};
 
-export const fakeConfig = (options?: Options) => ({
-    name: ensureFaker(options).string.sample()
-});
+export const fakeConfig = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return {
+        name: f.string.sample()
+    };
+};
 
-export const fakeDocument = (options?: Options) => ({
-    id: ensureFaker(options).string.uuid(),
-    _id: ensureFaker(options).string.uuid(),
-    numericId: ensureFaker(options).number.int()
-});
+export const fakeDocument = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return {
+        id: f.string.uuid(),
+        _id: f.string.uuid(),
+        numericId: f.number.int()
+    };
+};
 
-export const fakeListPetsResponse = (options?: Options) => ensureFaker(options).helpers.multiple(() => fakePet(options));
+export const fakeListPetsResponse = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.helpers.multiple(() => fakePet(options));
+};
 
 export const fakeCreatePetResponse201 = (options?: Options) => fakePet(options);
 
@@ -201,4 +349,7 @@ export const fakeGetPetResponse200 = (options?: Options) => fakePet(options);
 
 export const fakeGetPetResponse404 = (options?: Options) => fakeError(options);
 
-export const fakeHealthCheckResponse = (options?: Options) => ensureFaker(options).string.sample();
+export const fakeHealthCheckResponse = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return f.string.sample();
+};

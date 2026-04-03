@@ -43,12 +43,26 @@ export function exportAst({
     ...(meta.role ? { role: meta.role } : undefined),
   });
 
-  // Build arrow function, only adding options param when the expression uses faker
+  // Build arrow function, only adding options param when the expression uses faker.
+  // When usesAccessor is true, emit a block body: const f = options?.faker ?? faker; return <expr>;
   const arrowFn = $.func()
     .arrow()
     .$if(final.usesFaker, (f) => f.param('options', (p) => p.optional().type('Options')))
     .$if(typeSymbol, (f) => f.returns($.type(typeSymbol!)))
-    .do($.return(final.expression));
+    .$if(
+      final.usesAccessor,
+      (f) => {
+        const fakerPackagePath = plugin.config.locale
+          ? `@faker-js/faker/locale/${plugin.config.locale}`
+          : '@faker-js/faker';
+        const fakerSymbol = plugin.external(`${fakerPackagePath}.faker`);
+        const fDecl = $.const('f').assign(
+          $.binary($('options').attr('faker').optional(), '??', $(fakerSymbol)),
+        );
+        return f.do(fDecl, $.return(final.expression));
+      },
+      (f) => f.do($.return(final.expression)),
+    );
 
   const statement = $.const(symbol).export().assign(arrowFn);
 

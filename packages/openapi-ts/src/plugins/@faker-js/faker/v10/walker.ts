@@ -24,7 +24,11 @@ export interface VisitorConfig {
   tracking: EmitTracking;
 }
 
-const FALLBACK_UNDEFINED: FakerResult = { expression: $('undefined'), usesFaker: false };
+const FALLBACK_UNDEFINED: FakerResult = {
+  expression: $('undefined'),
+  usesAccessor: false,
+  usesFaker: false,
+};
 
 /**
  * Detect discriminator constraint schemas: objects where every property has a `const` value.
@@ -49,12 +53,14 @@ export function createVisitor(
     array(schema, ctx, walk) {
       return {
         expression: arrayToExpression({ fakerCtx, schema, walk, walkerCtx: ctx }),
+        usesAccessor: true,
         usesFaker: true,
       };
     },
     boolean() {
       return {
         expression: booleanToExpression(fakerCtx),
+        usesAccessor: true,
         usesFaker: true,
       };
     },
@@ -64,19 +70,20 @@ export function createVisitor(
       const hasMembers = schema.items?.some(
         (item) => item.const !== undefined || item.type === 'null',
       );
-      return { expression, usesFaker: !!hasMembers };
+      return { expression, usesAccessor: !!hasMembers, usesFaker: !!hasMembers };
     },
     integer(schema, ctx) {
       const nameInfo = propertyNameFromPath(fromRef(ctx.path));
       return {
         expression: numberToExpression(fakerCtx, schema, nameInfo),
+        usesAccessor: true,
         usesFaker: true,
       };
     },
     intercept(schema, ctx, walk) {
       // const values are always emitted as literals
       if (schema.const !== undefined) {
-        return { expression: $.fromValue(schema.const), usesFaker: false };
+        return { expression: $.fromValue(schema.const), usesAccessor: false, usesFaker: false };
       }
 
       if (schemaExtractor && !schema.$ref) {
@@ -140,6 +147,7 @@ export function createVisitor(
 
       return {
         expression: obj,
+        usesAccessor: items.some((item) => item.usesAccessor),
         usesFaker: items.some((item) => item.usesFaker),
       };
     },
@@ -147,23 +155,21 @@ export function createVisitor(
       return FALLBACK_UNDEFINED;
     },
     null() {
-      return { expression: $.fromValue(null), usesFaker: false };
+      return { expression: $.fromValue(null), usesAccessor: false, usesFaker: false };
     },
     number(schema, ctx) {
       const nameInfo = propertyNameFromPath(fromRef(ctx.path));
       return {
         expression: numberToExpression(fakerCtx, schema, nameInfo),
+        usesAccessor: true,
         usesFaker: true,
       };
     },
     object(schema, ctx, walk) {
-      return {
-        expression: objectToExpression({ fakerCtx, schema, walk, walkerCtx: ctx }),
-        usesFaker: true,
-      };
+      return objectToExpression({ fakerCtx, schema, walk, walkerCtx: ctx });
     },
     postProcess(result, schema) {
-      // resolveCondition(options?.useDefault ?? false, faker) ? <default> : <faker>
+      // resolveCondition(options?.useDefault ?? false, f) ? <default> : <faker>
       if (schema.default !== undefined && result.usesFaker) {
         tracking.needsResolveCondition = true;
         const condition = $('resolveCondition').call(
@@ -173,6 +179,7 @@ export function createVisitor(
         const defaultExpr = $.fromValue(schema.default);
         return {
           expression: $.ternary(condition).do(defaultExpr).otherwise(result.expression),
+          usesAccessor: true,
           usesFaker: true,
         };
       }
@@ -190,6 +197,7 @@ export function createVisitor(
 
       return {
         expression: $(refSymbol).call(fakerCtx.optionsId),
+        usesAccessor: false,
         usesFaker: true,
       };
     },
@@ -197,19 +205,26 @@ export function createVisitor(
       const nameInfo = propertyNameFromPath(fromRef(ctx.path));
       return {
         expression: stringToExpression(fakerCtx, schema, nameInfo),
+        usesAccessor: true,
         usesFaker: true,
       };
     },
     tuple(schema, ctx, walk) {
       const elements: Array<Expression> = [];
       let anyChildUsesFaker = false;
+      let anyChildUsesAccessor = false;
       for (let i = 0; i < (schema.items?.length ?? 0); i++) {
         const item = schema.items![i]!;
         const result = walk(item, childContext(ctx, 'items', i));
         elements.push(result.expression);
         if (result.usesFaker) anyChildUsesFaker = true;
+        if (result.usesAccessor) anyChildUsesAccessor = true;
       }
-      return { expression: $.array(...elements), usesFaker: anyChildUsesFaker };
+      return {
+        expression: $.array(...elements),
+        usesAccessor: anyChildUsesAccessor,
+        usesFaker: anyChildUsesFaker,
+      };
     },
     undefined() {
       return FALLBACK_UNDEFINED;
@@ -232,6 +247,7 @@ export function createVisitor(
           expression: $.ternary(fakerCtx.fakerAccessor.attr('datatype').attr('boolean').call())
             .do(nonNullItems[0]!.expression)
             .otherwise($.fromValue(null)),
+          usesAccessor: true,
           usesFaker: true,
         };
       }
@@ -254,6 +270,7 @@ export function createVisitor(
             .attr('arrayElement')
             .call($.array(...thunks)),
         ).call(),
+        usesAccessor: true,
         usesFaker: true,
       };
     },

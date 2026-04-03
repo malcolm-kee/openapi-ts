@@ -2,7 +2,7 @@ import type { SchemaVisitorContext, SchemaWithType, Walker } from '@hey-api/shar
 import { childContext } from '@hey-api/shared';
 
 import { $ } from '../../../../../ts-dsl';
-import type { Expression, FakerResult, FakerWalkerContext } from '../../shared/types';
+import type { FakerResult, FakerWalkerContext } from '../../shared/types';
 import type { FakerJsFakerPlugin } from '../../types';
 
 /**
@@ -24,9 +24,10 @@ export function objectToExpression({
   schema: SchemaWithType<'object'>;
   walk: Walker<FakerResult, FakerJsFakerPlugin['Instance']>;
   walkerCtx: SchemaVisitorContext<FakerJsFakerPlugin['Instance']>;
-}): Expression {
+}): FakerResult {
   const obj = $.object().pretty();
   const requiredSet = new Set(schema.required ?? []);
+  let usesAccessor = false;
 
   for (const name in schema.properties) {
     const property = schema.properties[name]!;
@@ -34,10 +35,12 @@ export function objectToExpression({
 
     if (requiredSet.has(name)) {
       obj.prop(name, result.expression);
+      if (result.usesAccessor) usesAccessor = true;
     } else {
       // Optional property: conditionally spread based on options.includeOptional
-      // Generated: ...(!resolveCondition(options?.includeOptional ?? true, faker) ? {} : { prop: value })
+      // Generated: ...(!resolveCondition(options?.includeOptional ?? true, f) ? {} : { prop: value })
       fakerCtx.tracking.needsResolveCondition = true;
+      usesAccessor = true;
       const includeCondition = $('resolveCondition').call(
         $.binary($(fakerCtx.optionsId).attr('includeOptional').optional(), '??', $.literal(true)),
         fakerCtx.fakerAccessor,
@@ -47,5 +50,5 @@ export function objectToExpression({
     }
   }
 
-  return obj;
+  return { expression: obj, usesAccessor, usesFaker: true };
 }

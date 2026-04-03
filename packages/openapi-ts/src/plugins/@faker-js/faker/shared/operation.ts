@@ -143,7 +143,20 @@ function exportOperationResponse({
     .arrow()
     .$if(result.usesFaker, (f) => f.param('options', (p) => p.optional().type('Options')))
     .$if(typeSymbol, (f) => f.returns($.type(typeSymbol!).idx(statusLiteral)))
-    .do($.return(result.expression));
+    .$if(
+      result.usesAccessor,
+      (f) => {
+        const fakerPackagePath = plugin.config.locale
+          ? `@faker-js/faker/locale/${plugin.config.locale}`
+          : '@faker-js/faker';
+        const fakerSymbol = plugin.external(`${fakerPackagePath}.faker`);
+        const fDecl = $.const('f').assign(
+          $.binary($('options').attr('faker').optional(), '??', $(fakerSymbol)),
+        );
+        return f.do(fDecl, $.return(result.expression));
+      },
+      (f) => f.do($.return(result.expression)),
+    );
 
   plugin.node($.const(symbol).export().assign(arrowFn));
 }
@@ -222,7 +235,20 @@ function exportUnsuffixedResponse({
     .arrow()
     .$if(result.usesFaker, (f) => f.param('options', (p) => p.optional().type('Options')))
     .$if(typeSymbol, (f) => f.returns($.type(typeSymbol!)))
-    .do($.return(result.expression));
+    .$if(
+      result.usesAccessor,
+      (f) => {
+        const fakerPackagePath = plugin.config.locale
+          ? `@faker-js/faker/locale/${plugin.config.locale}`
+          : '@faker-js/faker';
+        const fakerSymbol = plugin.external(`${fakerPackagePath}.faker`);
+        const fDecl = $.const('f').assign(
+          $.binary($('options').attr('faker').optional(), '??', $(fakerSymbol)),
+        );
+        return f.do(fDecl, $.return(result.expression));
+      },
+      (f) => f.do($.return(result.expression)),
+    );
 
   plugin.node($.const(symbol).export().assign(arrowFn));
 }
