@@ -25,6 +25,14 @@ describe(`OpenAPI ${version}`, () => {
     {
       config: createConfig({
         input: 'faker-basic.yaml',
+        output: 'faker-basic-locale',
+        plugins: [{ locale: 'de', name: '@faker-js/faker' }],
+      }),
+      description: 'generates faker factories with locale-specific import',
+    },
+    {
+      config: createConfig({
+        input: 'faker-basic.yaml',
         output: 'faker-basic-typed',
         plugins: ['@hey-api/typescript', '@faker-js/faker'],
       }),

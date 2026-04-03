@@ -45,6 +45,14 @@ export type UserConfig = Plugin.Name<'@faker-js/faker'> &
           name?: NameTransformer;
         };
     /**
+     * Locale for `@faker-js/faker`. When set, the generated import for the
+     * faker instance will use `@faker-js/faker/locale/{locale}` instead of
+     * `@faker-js/faker`.
+     *
+     * @see https://fakerjs.dev/guide/localization
+     */
+    locale?: string;
+    /**
      * Configuration for operation response factories.
      *
      * Can be:
@@ -85,6 +93,8 @@ export type Config = Plugin.Name<'@faker-js/faker'> &
     case: Casing;
     /** Configuration for reusable schema definitions. */
     definitions: NamingOptions & FeatureToggle;
+    /** Locale for `@faker-js/faker`. */
+    locale?: string;
     /** Configuration for operation response factories. */
     responses: NamingOptions & FeatureToggle;
   };

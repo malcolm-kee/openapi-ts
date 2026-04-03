@@ -7,8 +7,12 @@ import type { FakerJsFakerPlugin } from '../types';
 import { createProcessor } from './processor';
 
 export const handlerV1: FakerJsFakerPlugin['Handler'] = ({ plugin }) => {
+  const fakerPackagePath = plugin.config.locale
+    ? `@faker-js/faker/locale/${plugin.config.locale}`
+    : '@faker-js/faker';
+
   plugin.symbol('faker', {
-    external: '@faker-js/faker',
+    external: fakerPackagePath,
     importKind: 'named',
   });
 
@@ -49,7 +53,7 @@ export const handlerV1: FakerJsFakerPlugin['Handler'] = ({ plugin }) => {
   const resolveConditionSlot = plugin.node(null);
 
   // Emit helper: const ensureFaker = (options?: Options): Faker => options?.faker ?? faker
-  const fakerSymbol = plugin.external('@faker-js/faker.faker');
+  const fakerSymbol = plugin.external(`${fakerPackagePath}.faker`);
   const ensureFakerFn = $.func()
     .arrow()
     .param('options', (p) => p.optional().type('Options'))
