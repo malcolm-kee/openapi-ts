@@ -112,7 +112,8 @@ function exportOperationResponse({
         path: [...path, group, statusCode],
         resource: 'operation',
         resourceId: operation.id,
-        role: group,
+        role: 'response',
+        statusCode,
         tags,
         tool: 'faker',
       },
@@ -125,12 +126,11 @@ function exportOperationResponse({
 
   // Look up TypeScript type for indexed access return type
   // 2XX codes → responses (plural), 4XX/5XX → errors (plural)
-  const typeRole = group; // 'responses' or 'errors'
   const typeSymbol = plugin.querySymbol({
     category: 'type',
     resource: 'operation',
     resourceId: operation.id,
-    role: typeRole,
+    role: group,
     tool: 'typescript',
   });
 
@@ -143,6 +143,85 @@ function exportOperationResponse({
     .arrow()
     .$if(result.usesFaker, (f) => f.param('options', (p) => p.optional().type('Options')))
     .$if(typeSymbol, (f) => f.returns($.type(typeSymbol!).idx(statusLiteral)))
+    .do($.return(result.expression));
+
+  plugin.node($.const(symbol).export().assign(arrowFn));
+}
+
+/**
+ * Export an unsuffixed operation response factory (single meaningful 2XX, no errors).
+ * Uses manual export with consistent metadata (role: 'response', statusCode).
+ */
+function exportUnsuffixedResponse({
+  naming,
+  operation,
+  path,
+  plugin,
+  processor,
+  schema,
+  statusCode,
+  tags,
+}: {
+  naming: NamingConfig;
+  operation: IR.OperationObject;
+  path: ReadonlyArray<string | number>;
+  plugin: FakerJsFakerPlugin['Instance'];
+  processor: ProcessorResult;
+  schema: IR.SchemaObject;
+  statusCode: string;
+  tags?: ReadonlyArray<string>;
+}): void {
+  const result = processor.process({
+    export: false,
+    meta: {
+      resource: 'operation',
+      resourceId: operation.id,
+      role: 'response',
+    },
+    naming,
+    namingAnchor: operation.id,
+    path: [...path, 'responses'],
+    plugin,
+    schema,
+    tags,
+  }) as FakerResult | void;
+
+  if (!result) return;
+
+  const name = pathToName([...path, 'responses'], { anchor: operation.id });
+
+  const symbol = plugin.registerSymbol(
+    buildSymbolIn({
+      meta: {
+        category: 'schema',
+        path: [...path, 'responses'],
+        resource: 'operation',
+        resourceId: operation.id,
+        role: 'response',
+        statusCode,
+        tags,
+        tool: 'faker',
+      },
+      name,
+      naming,
+      plugin,
+      schema,
+    }),
+  );
+
+  // Look up TypeScript type (singular 'response' role)
+  const typeSymbol = plugin.querySymbol({
+    category: 'type',
+    resource: 'operation',
+    resourceId: operation.id,
+    role: 'response',
+    tool: 'typescript',
+  });
+
+  const arrowFn = $.func()
+    .arrow()
+    .$if(result.usesFaker, (f) => f.param('options', (p) => p.optional().type('Options')))
+    .$if(typeSymbol, (f) => f.returns($.type(typeSymbol!)))
     .do($.return(result.expression));
 
   plugin.node($.const(symbol).export().assign(arrowFn));
@@ -172,23 +251,18 @@ export function irOperationToAst({
   const useSuffix = !(meaningful.length === 1 && meaningful[0]!.group === 'responses');
 
   if (!useSuffix) {
-    // Single 2XX: no suffix, use standard exportAst pipeline
     const entry = meaningful[0]!;
-    processor.process({
-      meta: {
-        resource: 'operation',
-        resourceId: operation.id,
-        role: 'response',
-      },
+    exportUnsuffixedResponse({
       naming: plugin.config.responses,
-      namingAnchor: operation.id,
-      path: [...path, 'responses'],
+      operation,
+      path,
       plugin,
+      processor,
       schema: entry.schema,
+      statusCode: entry.statusCode,
       tags,
     });
   } else {
-    // Suffixed: per-status-code factories
     for (const entry of meaningful) {
       exportOperationResponse({
         group: entry.group,
