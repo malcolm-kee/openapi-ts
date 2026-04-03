@@ -91,7 +91,7 @@ export const fakeShortName = (options?: Options) => {
 
 export const fakeMinOnlyString = (options?: Options) => {
     const f = options?.faker ?? faker;
-    return f.string.alpha({ length: { min: 10, max: 1000 } });
+    return f.string.alpha({ length: { min: 10, max: 100 } });
 };
 
 export const fakeMaxOnlyString = (options?: Options) => {
@@ -151,7 +151,7 @@ export const fakeTagList = (options?: Options) => {
 
 export const fakeMinOnlyArray = (options?: Options) => {
     const f = options?.faker ?? faker;
-    return f.helpers.multiple(() => f.number.int(), { count: { min: 3, max: 1000 } });
+    return f.helpers.multiple(() => f.number.int(), { count: { min: 3, max: 100 } });
 };
 
 export const fakeMaxOnlyArray = (options?: Options) => {
