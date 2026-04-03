@@ -1,21 +1,17 @@
 import { $ } from '../../../../ts-dsl';
-import type { FakerJsFakerPlugin } from '../types';
 import type { FakerWalkerContext } from './types';
 
 /**
  * Creates the shared walker context with the faker accessor expression.
  *
- * The accessor is `(options?.faker ?? faker)` — it falls back to the
- * default `faker` import when the user doesn't provide a custom instance.
+ * The accessor is `ensureFaker(options)` — the helper resolves
+ * `options?.faker ?? faker` so each call site stays clean.
  */
-export function createFakerWalkerContext(
-  plugin: FakerJsFakerPlugin['Instance'],
-): FakerWalkerContext {
-  const fakerSymbol = plugin.external('@faker-js/faker.faker');
+export function createFakerWalkerContext(): FakerWalkerContext {
   const optionsId = $('options');
 
-  // (options?.faker ?? faker)
-  const fakerAccessor = $($.binary($(optionsId).attr('faker').optional(), '??', $(fakerSymbol)));
+  // ensureFaker(options)
+  const fakerAccessor = $($('ensureFaker').call(optionsId));
 
   return {
     fakerAccessor,

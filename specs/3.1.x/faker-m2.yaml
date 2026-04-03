@@ -1,0 +1,207 @@
+openapi: 3.1.0
+info:
+  title: Faker M2 constraint and format test
+  version: '1'
+paths: {}
+components:
+  schemas:
+    # --- String formats ---
+    Email:
+      type: string
+      format: email
+    DateTime:
+      type: string
+      format: date-time
+    DateOnly:
+      type: string
+      format: date
+    UniqueId:
+      type: string
+      format: uuid
+    Website:
+      type: string
+      format: uri
+    IPv4Address:
+      type: string
+      format: ipv4
+    IPv6Address:
+      type: string
+      format: ipv6
+
+    # --- String with pattern ---
+    ZipCode:
+      type: string
+      pattern: '^\d{5}(-\d{4})?$'
+
+    # --- String with length constraints ---
+    ShortName:
+      type: string
+      minLength: 2
+      maxLength: 50
+    MinOnlyString:
+      type: string
+      minLength: 10
+    MaxOnlyString:
+      type: string
+      maxLength: 5
+
+    # --- Format takes priority over length constraints ---
+    EmailWithLength:
+      type: string
+      format: email
+      minLength: 5
+      maxLength: 100
+
+    # --- Numeric constraints ---
+    BoundedInt:
+      type: integer
+      minimum: 1
+      maximum: 100
+    BoundedFloat:
+      type: number
+      minimum: 0.0
+      maximum: 1.0
+    ExclusiveInt:
+      type: integer
+      exclusiveMinimum: 0
+      exclusiveMaximum: 10
+    MinOnlyNumber:
+      type: number
+      minimum: 0
+    MaxOnlyInt:
+      type: integer
+      maximum: 999
+
+    # --- Array constraints ---
+    TagList:
+      type: array
+      items:
+        type: string
+      minItems: 1
+      maxItems: 10
+    MinOnlyArray:
+      type: array
+      items:
+        type: integer
+      minItems: 3
+    MaxOnlyArray:
+      type: array
+      items:
+        type: string
+      maxItems: 5
+    UnconstrainedArray:
+      type: array
+      items:
+        type: string
+
+    # --- Default values (opt-in via useDefault) ---
+    DefaultString:
+      type: string
+      default: 'unknown'
+    DefaultInt:
+      type: integer
+      default: 0
+    DefaultBool:
+      type: boolean
+      default: true
+
+    # --- Default overrides constraints when useDefault is true ---
+    DefaultOverridesConstraints:
+      type: integer
+      minimum: 1
+      maximum: 100
+      default: 42
+
+    # --- Exclusive bounds on floats ---
+    ExclusiveFloat:
+      type: number
+      exclusiveMinimum: 0
+      exclusiveMaximum: 1
+
+    # --- Narrow exclusive float range at large magnitude ---
+    ExclusiveFloatNarrow:
+      type: number
+      exclusiveMinimum: 10.1
+      exclusiveMaximum: 10.2
+
+    # --- Nullable types (OpenAPI 3.1 style) ---
+    NullableString:
+      type:
+        - string
+        - 'null'
+    NullableInt:
+      type:
+        - integer
+        - 'null'
+
+    # --- Nested default in object property ---
+    ObjectWithDefaultProp:
+      type: object
+      properties:
+        name:
+          type: string
+        status:
+          type: string
+          default: 'active'
+      required:
+        - name
+
+    # --- Object with optional properties ---
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        bio:
+          type: string
+        age:
+          type: integer
+      required:
+        - id
+        - name
+
+    # --- Nested $ref calls (object with $ref property, array of $ref) ---
+    Address:
+      type: object
+      properties:
+        street:
+          type: string
+          minLength: 1
+          maxLength: 200
+        zip:
+          $ref: '#/components/schemas/ZipCode'
+      required:
+        - street
+        - zip
+    Person:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/ShortName'
+        email:
+          $ref: '#/components/schemas/Email'
+        address:
+          $ref: '#/components/schemas/Address'
+      required:
+        - name
+        - email
+    PersonList:
+      type: array
+      items:
+        $ref: '#/components/schemas/Person'
+      minItems: 1
+      maxItems: 20
+
+    # --- Object with $ref to a schema that has defaults ---
+    Team:
+      type: object
+      properties:
+        lead:
+          $ref: '#/components/schemas/Person'
+        config:
+          $ref: '#/components/schemas/ObjectWithDefaultProp'
+      required:
+        - lead
+        - config

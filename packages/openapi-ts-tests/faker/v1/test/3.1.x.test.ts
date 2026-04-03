@@ -38,6 +38,15 @@ describe(`OpenAPI ${version}`, () => {
       }),
       description: 'handles number, null, enum-with-null, array, $ref, and union schemas',
     },
+    {
+      config: createConfig({
+        input: 'faker-m2.yaml',
+        output: 'faker-m2',
+        plugins: ['@hey-api/typescript', '@faker-js/faker'],
+      }),
+      description:
+        'handles string formats, numeric constraints, array constraints, and default values',
+    },
   ];
 
   it.each(scenarios)('$description', async ({ config }) => {
