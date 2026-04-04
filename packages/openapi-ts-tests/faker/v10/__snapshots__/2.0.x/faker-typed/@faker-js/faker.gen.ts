@@ -2,7 +2,7 @@
 
 import { faker, type Faker } from '@faker-js/faker';
 
-import type { Active, Address, BoundedFloat, BoundedInt, Company, Config, CreatePetResponses, DateOnly, DateTime, DefaultBool, DefaultInt, DefaultOverridesConstraints, DefaultString, DeletePetErrors, DeletePetResponses, Document, Email, EmailWithLength, Error, ExclusiveFloat, ExclusiveFloatNarrow, ExclusiveInt, GetPetErrors, GetPetResponses, HealthCheckResponse, IPv4Address, IPv6Address, ListPetsResponse, MaxOnlyArray, MaxOnlyInt, MaxOnlyString, MinOnlyArray, MinOnlyNumber, MinOnlyString, NullableInt, NullableString, NumericEnum, ObjectWithDefaultProp, Person, PersonList, PersonProfile, PersonWithConstraints, Pet, PetList, PetWithOwner, Price, Quantity, ShortName, Tag, TagList, Tags, Team, UniqueId, User, UserProfile, Website, ZipCode } from '../types.gen';
+import type { Active, Address, BoundedFloat, BoundedInt, Company, Config, CreatePetData, CreatePetResponses, DateOnly, DateTime, DefaultBool, DefaultInt, DefaultOverridesConstraints, DefaultString, DeletePetData, DeletePetErrors, DeletePetResponses, Document, Email, EmailWithLength, Error, ExclusiveFloat, ExclusiveFloatNarrow, ExclusiveInt, GetPetData, GetPetErrors, GetPetResponses, HealthCheckResponse, IPv4Address, IPv6Address, ListPetsData, ListPetsResponse, MaxOnlyArray, MaxOnlyInt, MaxOnlyString, MinOnlyArray, MinOnlyNumber, MinOnlyString, NullableInt, NullableString, NumericEnum, ObjectWithDefaultProp, Person, PersonList, PersonProfile, PersonWithConstraints, Pet, PetList, PetWithOwner, Price, Quantity, ShortName, Tag, TagList, Tags, Team, UniqueId, User, UserProfile, Website, ZipCode } from '../types.gen';
 
 export type Options = {
     faker?: Faker;
@@ -334,18 +334,60 @@ export const fakeDocument = (options?: Options): Document => {
     };
 };
 
+export const fakeListPetsRequest = (options?: Options): ListPetsData => {
+    const f = options?.faker ?? faker;
+    return {
+        ...!resolveCondition(options?.includeOptional ?? true, f) ? {} : { query: {
+                ...!resolveCondition(options?.includeOptional ?? true, f) ? {} : { limit: f.number.int({ min: 1, max: 100 }) },
+                ...!resolveCondition(options?.includeOptional ?? true, f) ? {} : { offset: f.number.int({ min: 0 }) }
+            } },
+        url: '/pets'
+    };
+};
+
 export const fakeListPetsResponse = (options?: Options): ListPetsResponse => {
     const f = options?.faker ?? faker;
     return f.helpers.multiple(() => fakePet(options));
+};
+
+export const fakeCreatePetRequest = (options?: Options): CreatePetData => {
+    const f = options?.faker ?? faker;
+    return {
+        body: {
+            name: f.string.sample(),
+            ...!resolveCondition(options?.includeOptional ?? true, f) ? {} : { tag: f.string.sample() }
+        },
+        url: '/pets'
+    };
 };
 
 export const fakeCreatePetResponse201 = (options?: Options): CreatePetResponses[201] => fakePet(options);
 
 export const fakeCreatePetResponse204 = (): CreatePetResponses[204] => undefined;
 
+export const fakeDeletePetRequest = (options?: Options): DeletePetData => {
+    const f = options?.faker ?? faker;
+    return {
+        path: {
+            id: f.string.uuid()
+        },
+        url: '/pets/{id}'
+    };
+};
+
 export const fakeDeletePetResponse204 = (): DeletePetResponses[204] => undefined;
 
 export const fakeDeletePetResponse404 = (options?: Options): DeletePetErrors[404] => fakeError(options);
+
+export const fakeGetPetRequest = (options?: Options): GetPetData => {
+    const f = options?.faker ?? faker;
+    return {
+        path: {
+            id: f.string.uuid()
+        },
+        url: '/pets/{id}'
+    };
+};
 
 export const fakeGetPetResponse200 = (options?: Options): GetPetResponses[200] => fakePet(options);
 

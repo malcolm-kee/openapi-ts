@@ -418,18 +418,71 @@ export const fakeDocument = (options?: Options) => {
     };
 };
 
+export const fakeListPetsRequest = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return {
+        ...!resolveCondition(options?.includeOptional ?? true, f) ? {} : { query: {
+                ...!resolveCondition(options?.includeOptional ?? true, f) ? {} : { limit: f.number.int({ min: 1, max: 100 }) },
+                ...!resolveCondition(options?.includeOptional ?? true, f) ? {} : { offset: f.number.int({ min: 0 }) }
+            } },
+        url: '/pets'
+    };
+};
+
 export const fakeListPetsResponse = (options?: Options) => {
     const f = options?.faker ?? faker;
     return f.helpers.multiple(() => fakePet(options));
 };
 
+export const fakeCreatePetRequest = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return {
+        body: {
+            name: f.string.sample(),
+            ...!resolveCondition(options?.includeOptional ?? true, f) ? {} : { tag: f.string.sample() }
+        },
+        url: '/pets'
+    };
+};
+
 export const fakeCreatePetResponse = (options?: Options) => fakePet(options);
 
+export const fakeDeletePetRequest = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return {
+        path: {
+            id: f.string.uuid()
+        },
+        url: '/pets/{id}'
+    };
+};
+
 export const fakeDeletePetResponse404 = (options?: Options) => fakeError(options);
+
+export const fakeGetPetRequest = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return {
+        path: {
+            id: f.string.uuid()
+        },
+        url: '/pets/{id}'
+    };
+};
 
 export const fakeGetPetResponse200 = (options?: Options) => fakePet(options);
 
 export const fakeGetPetResponse404 = (options?: Options) => fakeError(options);
+
+export const fakeCreateJobRequest = (options?: Options) => {
+    const f = options?.faker ?? faker;
+    return {
+        body: fakePet(options),
+        headers: {
+            'X-Request-Id': f.string.uuid()
+        },
+        url: '/jobs'
+    };
+};
 
 export const fakeCreateJobResponse2Xx = (options?: Options) => fakePet(options);
 

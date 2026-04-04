@@ -1,5 +1,10 @@
 import type { IR, NamingConfig } from '@hey-api/shared';
-import { buildSymbolIn, operationResponsesMap, pathToName } from '@hey-api/shared';
+import {
+  buildSymbolIn,
+  deduplicateSchema,
+  operationResponsesMap,
+  pathToName,
+} from '@hey-api/shared';
 
 import { $ } from '../../../../ts-dsl';
 import type { FakerJsFakerPlugin } from '../types';
@@ -228,6 +233,194 @@ function exportUnsuffixedResponse({
     resource: 'operation',
     resourceId: operation.id,
     role: 'response',
+    tool: 'typescript',
+  });
+
+  const arrowFn = $.func()
+    .arrow()
+    .$if(result.usesFaker, (f) => f.param('options', (p) => p.optional().type('Options')))
+    .$if(typeSymbol, (f) => f.returns($.type(typeSymbol!)))
+    .$if(
+      result.usesAccessor,
+      (f) => {
+        const fakerPackagePath = plugin.config.locale
+          ? `@faker-js/faker/locale/${plugin.config.locale}`
+          : '@faker-js/faker';
+        const fakerSymbol = plugin.external(`${fakerPackagePath}.faker`);
+        const fDecl = $.const('f').assign(
+          $.binary($('options').attr('faker').optional(), '??', $(fakerSymbol)),
+        );
+        return f.do(fDecl, $.return(result.expression));
+      },
+      (f) => f.do($.return(result.expression)),
+    );
+
+  plugin.node($.const(symbol).export().assign(arrowFn));
+}
+
+function irParametersToIrSchema({
+  parameters,
+}: {
+  parameters: Record<string, IR.ParameterObject>;
+}): IR.SchemaObject {
+  const irSchema: IR.SchemaObject = {
+    type: 'object',
+  };
+
+  const properties: Record<string, IR.SchemaObject> = {};
+  const required: Array<string> = [];
+
+  for (const key in parameters) {
+    const parameter = parameters[key]!;
+
+    properties[parameter.name] = deduplicateSchema({
+      detectFormat: false,
+      schema: parameter.schema,
+    });
+
+    if (parameter.required) {
+      required.push(parameter.name);
+    }
+  }
+
+  irSchema.properties = properties;
+
+  if (required.length) {
+    irSchema.required = required;
+  }
+
+  return irSchema;
+}
+
+function isOctetStreamBody(body: IR.BodyObject): boolean {
+  return body.type === 'octet-stream';
+}
+
+/**
+ * Build and export a request data factory for an operation.
+ * The factory produces an object matching the TypeScript data type shape:
+ * `{ body?, path?, query?, headers?, url }`.
+ */
+export function irOperationRequestToAst({
+  operation,
+  path,
+  plugin,
+  processor,
+  tags,
+}: {
+  operation: IR.OperationObject;
+  path: ReadonlyArray<string | number>;
+  plugin: FakerJsFakerPlugin['Instance'];
+  processor: ProcessorResult;
+  tags?: ReadonlyArray<string>;
+}): void {
+  if (!plugin.config.requests.enabled) return;
+
+  const hasBody = operation.body && !isOctetStreamBody(operation.body);
+  const hasParams =
+    operation.parameters &&
+    (operation.parameters.path ||
+      operation.parameters.query ||
+      operation.parameters.header ||
+      operation.parameters.cookie);
+
+  // Skip if operation has no parameters and no body
+  if (!hasBody && !hasParams) return;
+
+  // Build composite schema mirroring the TypeScript data type structure
+  const properties: Record<string, IR.SchemaObject> = {};
+  const required: Array<string> = [];
+
+  if (hasBody) {
+    properties.body = operation.body!.schema;
+    if (operation.body!.required) {
+      required.push('body');
+    }
+  }
+
+  if (operation.parameters?.header) {
+    properties.headers = irParametersToIrSchema({
+      parameters: operation.parameters.header,
+    });
+    if (properties.headers.required) {
+      required.push('headers');
+    }
+  }
+
+  if (operation.parameters?.path) {
+    properties.path = irParametersToIrSchema({
+      parameters: operation.parameters.path,
+    });
+    if (properties.path.required) {
+      required.push('path');
+    }
+  }
+
+  if (operation.parameters?.query) {
+    properties.query = irParametersToIrSchema({
+      parameters: operation.parameters.query,
+    });
+    if (properties.query.required) {
+      required.push('query');
+    }
+  }
+
+  // Add url as a const string
+  properties.url = {
+    const: operation.path,
+    type: 'string',
+  };
+  required.push('url');
+
+  const compositeSchema: IR.SchemaObject = {
+    properties,
+    required,
+    type: 'object',
+  };
+
+  const result = processor.process({
+    export: false,
+    meta: {
+      resource: 'operation',
+      resourceId: operation.id,
+      role: 'request',
+    },
+    naming: plugin.config.requests,
+    namingAnchor: operation.id,
+    path: [...path, 'request'],
+    plugin,
+    schema: compositeSchema,
+    tags,
+  }) as FakerResult | void;
+
+  if (!result) return;
+
+  const name = pathToName([...path, 'request'], { anchor: operation.id });
+
+  const symbol = plugin.registerSymbol(
+    buildSymbolIn({
+      meta: {
+        category: 'schema',
+        path: [...path, 'request'],
+        resource: 'operation',
+        resourceId: operation.id,
+        role: 'request',
+        tags,
+        tool: 'faker',
+      },
+      name,
+      naming: plugin.config.requests,
+      plugin,
+      schema: compositeSchema,
+    }),
+  );
+
+  // Look up TypeScript data type for return type annotation
+  const typeSymbol = plugin.querySymbol({
+    category: 'type',
+    resource: 'operation',
+    resourceId: operation.id,
+    role: 'data',
     tool: 'typescript',
   });
 

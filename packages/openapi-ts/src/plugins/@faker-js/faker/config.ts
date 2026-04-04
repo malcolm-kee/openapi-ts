@@ -23,6 +23,16 @@ export const defaultConfig: FakerJsFakerPlugin['Config'] = {
       value: plugin.config.definitions,
     });
 
+    plugin.config.requests = context.valueToObject({
+      defaultValue: {
+        case: plugin.config.case ?? 'camelCase',
+        enabled: true,
+        name: 'fake{{name}}Request',
+      },
+      mappers,
+      value: plugin.config.requests,
+    });
+
     plugin.config.responses = context.valueToObject({
       defaultValue: {
         case: plugin.config.case ?? 'camelCase',

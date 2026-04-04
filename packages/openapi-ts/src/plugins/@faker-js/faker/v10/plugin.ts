@@ -1,7 +1,7 @@
 import { pathToJsonPointer } from '@hey-api/shared';
 
 import { $ } from '../../../../ts-dsl';
-import { irOperationToAst } from '../shared/operation';
+import { irOperationRequestToAst, irOperationToAst } from '../shared/operation';
 import type { EmitTracking } from '../shared/types';
 import type { FakerJsFakerPlugin } from '../types';
 import { createProcessor } from './processor';
@@ -58,6 +58,13 @@ export const handlerV10: FakerJsFakerPlugin['Handler'] = ({ plugin }) => {
   plugin.forEach('operation', 'parameter', 'requestBody', 'schema', (event) => {
     switch (event.type) {
       case 'operation':
+        irOperationRequestToAst({
+          operation: event.operation,
+          path: event._path,
+          plugin,
+          processor,
+          tags: event.tags,
+        });
         irOperationToAst({
           operation: event.operation,
           path: event._path,

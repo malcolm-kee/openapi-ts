@@ -207,7 +207,10 @@ export type Document = {
 export type ListPetsData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        limit?: number;
+        offset?: number;
+    };
     url: '/pets';
 };
 
@@ -221,7 +224,10 @@ export type ListPetsResponses = {
 export type ListPetsResponse = ListPetsResponses[keyof ListPetsResponses];
 
 export type CreatePetData = {
-    body?: never;
+    body: {
+        name: string;
+        tag?: string;
+    };
     path?: never;
     query?: never;
     url: '/pets';
@@ -295,7 +301,10 @@ export type GetPetResponses = {
 export type GetPetResponse = GetPetResponses[keyof GetPetResponses];
 
 export type CreateJobData = {
-    body?: never;
+    body: Pet;
+    headers: {
+        'X-Request-Id': string;
+    };
     path?: never;
     query?: never;
     url: '/jobs';

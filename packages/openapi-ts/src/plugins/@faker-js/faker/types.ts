@@ -53,6 +53,37 @@ export type UserConfig = Plugin.Name<'@faker-js/faker'> &
      */
     locale?: string;
     /**
+     * Configuration for operation request data factories.
+     *
+     * Can be:
+     * - `boolean`: Shorthand for `{ enabled: boolean }`
+     * - `string` or `function`: Shorthand for `{ name: string | function }`
+     * - `object`: Full configuration object
+     */
+    requests?:
+      | boolean
+      | NameTransformer
+      | {
+          /**
+           * Casing convention for generated names.
+           *
+           * @default 'camelCase'
+           */
+          case?: Casing;
+          /**
+           * Whether this feature is enabled.
+           *
+           * @default true
+           */
+          enabled?: boolean;
+          /**
+           * Naming pattern for generated names.
+           *
+           * @default 'fake{{name}}Request'
+           */
+          name?: NameTransformer;
+        };
+    /**
      * Configuration for operation response factories.
      *
      * Can be:
@@ -95,6 +126,8 @@ export type Config = Plugin.Name<'@faker-js/faker'> &
     definitions: NamingOptions & FeatureToggle;
     /** Locale for `@faker-js/faker`. */
     locale?: string;
+    /** Configuration for operation request data factories. */
+    requests: NamingOptions & FeatureToggle;
     /** Configuration for operation response factories. */
     responses: NamingOptions & FeatureToggle;
   };

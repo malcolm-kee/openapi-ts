@@ -2,7 +2,7 @@
 
 import { faker, type Faker } from '@faker-js/faker';
 
-import type { Active, Address, Animal, Anything, BoundedFloat, BoundedInt, Cat, Circle, Company, Config, CreateJobErrors, CreateJobResponses, CreatePetResponse, DateOnly, DateTime, DefaultBool, DefaultInt, DefaultOverridesConstraints, DefaultString, DeletePetErrors, Document, Dog, Email, EmailWithLength, Error, ExclusiveFloat, ExclusiveFloatNarrow, ExclusiveInt, GetPetErrors, GetPetResponses, HealthCheckResponse, IPv4Address, IPv6Address, ListPetsResponse, MaxOnlyArray, MaxOnlyInt, MaxOnlyString, MinOnlyArray, MinOnlyNumber, MinOnlyString, Nothing, NullableInt, NullablePetOrTag, NullableString, NumericEnum, ObjectWithDefaultProp, Person, PersonList, PersonProfile, PersonWithConstraints, Pet, PetList, PetOrTag, PetWithOwner, Price, Quantity, Shape, ShortName, Square, StatusWithNull, StringOrNumber, Tag, TagList, Tags, Team, UniqueId, User, UserProfile, Website, ZipCode } from '../types.gen';
+import type { Active, Address, Animal, Anything, BoundedFloat, BoundedInt, Cat, Circle, Company, Config, CreateJobData, CreateJobErrors, CreateJobResponses, CreatePetData, CreatePetResponse, DateOnly, DateTime, DefaultBool, DefaultInt, DefaultOverridesConstraints, DefaultString, DeletePetData, DeletePetErrors, Document, Dog, Email, EmailWithLength, Error, ExclusiveFloat, ExclusiveFloatNarrow, ExclusiveInt, GetPetData, GetPetErrors, GetPetResponses, HealthCheckResponse, IPv4Address, IPv6Address, ListPetsData, ListPetsResponse, MaxOnlyArray, MaxOnlyInt, MaxOnlyString, MinOnlyArray, MinOnlyNumber, MinOnlyString, Nothing, NullableInt, NullablePetOrTag, NullableString, NumericEnum, ObjectWithDefaultProp, Person, PersonList, PersonProfile, PersonWithConstraints, Pet, PetList, PetOrTag, PetWithOwner, Price, Quantity, Shape, ShortName, Square, StatusWithNull, StringOrNumber, Tag, TagList, Tags, Team, UniqueId, User, UserProfile, Website, ZipCode } from '../types.gen';
 
 export type Options = {
     faker?: Faker;
@@ -420,18 +420,71 @@ export const fakeDocument = (options?: Options): Document => {
     };
 };
 
+export const fakeListPetsRequest = (options?: Options): ListPetsData => {
+    const f = options?.faker ?? faker;
+    return {
+        ...!resolveCondition(options?.includeOptional ?? true, f) ? {} : { query: {
+                ...!resolveCondition(options?.includeOptional ?? true, f) ? {} : { limit: f.number.int({ min: 1, max: 100 }) },
+                ...!resolveCondition(options?.includeOptional ?? true, f) ? {} : { offset: f.number.int({ min: 0 }) }
+            } },
+        url: '/pets'
+    };
+};
+
 export const fakeListPetsResponse = (options?: Options): ListPetsResponse => {
     const f = options?.faker ?? faker;
     return f.helpers.multiple(() => fakePet(options));
 };
 
+export const fakeCreatePetRequest = (options?: Options): CreatePetData => {
+    const f = options?.faker ?? faker;
+    return {
+        body: {
+            name: f.string.sample(),
+            ...!resolveCondition(options?.includeOptional ?? true, f) ? {} : { tag: f.string.sample() }
+        },
+        url: '/pets'
+    };
+};
+
 export const fakeCreatePetResponse = (options?: Options): CreatePetResponse => fakePet(options);
 
+export const fakeDeletePetRequest = (options?: Options): DeletePetData => {
+    const f = options?.faker ?? faker;
+    return {
+        path: {
+            id: f.string.uuid()
+        },
+        url: '/pets/{id}'
+    };
+};
+
 export const fakeDeletePetResponse404 = (options?: Options): DeletePetErrors[404] => fakeError(options);
+
+export const fakeGetPetRequest = (options?: Options): GetPetData => {
+    const f = options?.faker ?? faker;
+    return {
+        path: {
+            id: f.string.uuid()
+        },
+        url: '/pets/{id}'
+    };
+};
 
 export const fakeGetPetResponse200 = (options?: Options): GetPetResponses[200] => fakePet(options);
 
 export const fakeGetPetResponse404 = (options?: Options): GetPetErrors[404] => fakeError(options);
+
+export const fakeCreateJobRequest = (options?: Options): CreateJobData => {
+    const f = options?.faker ?? faker;
+    return {
+        body: fakePet(options),
+        headers: {
+            'X-Request-Id': f.string.uuid()
+        },
+        url: '/jobs'
+    };
+};
 
 export const fakeCreateJobResponse2Xx = (options?: Options): CreateJobResponses['2XX'] => fakePet(options);
 
