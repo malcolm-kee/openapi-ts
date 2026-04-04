@@ -7,6 +7,7 @@ export const defaultConfig: HeyApiSchemasPlugin['Config'] = {
   config: {
     includeInEntry: false,
     nameBuilder: (name) => `${name}Schema`,
+    requests: false,
     type: 'json',
   },
   handler,

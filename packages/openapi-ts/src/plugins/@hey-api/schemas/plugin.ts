@@ -3,6 +3,7 @@ import { satisfies } from '@hey-api/shared';
 import type { OpenAPIV2, OpenAPIV3, OpenAPIV3_1 } from '@hey-api/spec-types';
 
 import { $ } from '../../../ts-dsl';
+import { safeRuntimeName } from '../../../ts-dsl/utils/name';
 import type { HeyApiSchemasPlugin } from './types';
 
 const stripSchema = ({
@@ -303,6 +304,10 @@ const schemaToJsonSchema2020_12 = ({
   return schema;
 };
 
+const httpMethods = ['delete', 'get', 'head', 'options', 'patch', 'post', 'put', 'trace'] as const;
+
+const httpMethodsV2 = ['delete', 'get', 'head', 'options', 'patch', 'post', 'put'] as const;
+
 const schemaName = ({
   name,
   plugin,
@@ -331,6 +336,80 @@ const schemaName = ({
   }
 
   return customName;
+};
+
+const resolveRequestsConfig = (
+  plugin: HeyApiSchemasPlugin['Instance'],
+): {
+  enabled: boolean;
+  nameBuilder: NonNullable<
+    NonNullable<
+      Exclude<HeyApiSchemasPlugin['Instance']['config']['requests'], boolean>
+    >['nameBuilder']
+  >;
+} => {
+  const requests = plugin.config.requests;
+  if (requests === false || requests === undefined) {
+    return { enabled: false, nameBuilder: (name) => `${name}RequestSchema` };
+  }
+  if (requests === true) {
+    return { enabled: true, nameBuilder: (name) => `${name}RequestSchema` };
+  }
+  const enabled = requests.enabled !== false;
+  let nameBuilder = requests.nameBuilder;
+  if (!nameBuilder) {
+    nameBuilder = (name) => `${name}RequestSchema`;
+  }
+  return { enabled, nameBuilder };
+};
+
+const requestSchemaName = ({
+  method,
+  nameBuilder,
+  operationId,
+  path,
+  schema,
+}: {
+  method: string;
+  nameBuilder:
+    | string
+    | ((
+        name: string,
+        schema:
+          | OpenAPIV2.SchemaObject
+          | OpenAPIV3.ReferenceObject
+          | OpenAPIV3.SchemaObject
+          | OpenAPIV3_1.SchemaObject,
+      ) => string);
+  operationId: string | undefined;
+  path: string;
+  schema:
+    | OpenAPIV2.SchemaObject
+    | OpenAPIV3.ReferenceObject
+    | OpenAPIV3.SchemaObject
+    | OpenAPIV3_1.SchemaObject;
+}): string => {
+  // Derive a base name from operationId or method+path
+  let baseName: string;
+  if (operationId) {
+    baseName = safeRuntimeName(operationId);
+  } else {
+    // Convert /api/v{version}/users/{id} + post -> PostApiVVersionUsersId
+    const pathPart = path
+      .split('/')
+      .filter(Boolean)
+      .map((segment) => {
+        const cleaned = segment.replace(/[{}$+]/g, '');
+        return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+      })
+      .join('');
+    baseName = safeRuntimeName(method.charAt(0).toUpperCase() + method.slice(1) + pathPart);
+  }
+
+  if (typeof nameBuilder === 'function') {
+    return nameBuilder(baseName, schema);
+  }
+  return nameBuilder.replace('{{name}}', baseName);
 };
 
 const schemasV2_0_X = ({
@@ -450,28 +529,235 @@ const schemasV3_1_X = ({
   }
 };
 
+const requestSchemasV2_0_X = ({
+  context,
+  plugin,
+}: {
+  context: Context<OpenApi.V2_0_X>;
+  plugin: HeyApiSchemasPlugin['Instance'];
+}) => {
+  const config = resolveRequestsConfig(plugin);
+  if (!config.enabled || !context.spec.paths) {
+    return;
+  }
+
+  for (const path in context.spec.paths) {
+    const pathItem = context.spec.paths[path as `/${string}`];
+    if (!pathItem) {
+      continue;
+    }
+
+    for (const method of httpMethodsV2) {
+      const operation = pathItem[method];
+      if (!operation?.parameters) {
+        continue;
+      }
+
+      // In OpenAPI 2.0, request body is a parameter with in: 'body'
+      for (const param of operation.parameters) {
+        if ('$ref' in param || param.in !== 'body' || !('schema' in param)) {
+          continue;
+        }
+
+        const name = requestSchemaName({
+          method,
+          nameBuilder: config.nameBuilder,
+          operationId: operation.operationId,
+          path,
+          schema: param.schema,
+        });
+        const symbol = plugin.symbol(name, {
+          meta: {
+            category: 'schema',
+            resource: 'request',
+            resourceId: operation.operationId ?? `${method}:${path}`,
+            tool: 'json-schema',
+          },
+        });
+        const obj = schemaToJsonSchemaDraft_04({
+          context,
+          plugin,
+          schema: param.schema,
+        });
+        const statement = $.const(symbol)
+          .export()
+          .assign(
+            $(
+              $.fromValue(obj, {
+                layout: 'pretty',
+              }),
+            ).as('const'),
+          );
+        plugin.node(statement);
+        break; // Only one body parameter is allowed
+      }
+    }
+  }
+};
+
+const requestSchemasV3_0_X = ({
+  context,
+  plugin,
+}: {
+  context: Context<OpenApi.V3_0_X>;
+  plugin: HeyApiSchemasPlugin['Instance'];
+}) => {
+  const config = resolveRequestsConfig(plugin);
+  if (!config.enabled || !context.spec.paths) {
+    return;
+  }
+
+  for (const path in context.spec.paths) {
+    const pathItem = context.spec.paths[path as `/${string}`];
+    if (!pathItem) {
+      continue;
+    }
+
+    for (const method of httpMethods) {
+      const operation = pathItem[method];
+      if (!operation?.requestBody) {
+        continue;
+      }
+
+      const requestBody = operation.requestBody;
+      // Skip $ref request bodies
+      if ('$ref' in requestBody) {
+        continue;
+      }
+
+      // Prefer application/json, fall back to first available content type
+      const mediaType =
+        requestBody.content['application/json'] ?? Object.values(requestBody.content)[0];
+      if (!mediaType?.schema) {
+        continue;
+      }
+
+      const schema = mediaType.schema;
+      const name = requestSchemaName({
+        method,
+        nameBuilder: config.nameBuilder,
+        operationId: operation.operationId,
+        path,
+        schema,
+      });
+      const symbol = plugin.symbol(name, {
+        meta: {
+          category: 'schema',
+          resource: 'request',
+          resourceId: operation.operationId ?? `${method}:${path}`,
+          tool: 'json-schema',
+        },
+      });
+      const obj = schemaToJsonSchemaDraft_05({
+        context,
+        plugin,
+        schema,
+      });
+      const statement = $.const(symbol)
+        .export()
+        .assign(
+          $(
+            $.fromValue(obj, {
+              layout: 'pretty',
+            }),
+          ).as('const'),
+        );
+      plugin.node(statement);
+    }
+  }
+};
+
+const requestSchemasV3_1_X = ({
+  context,
+  plugin,
+}: {
+  context: Context<OpenApi.V3_1_X>;
+  plugin: HeyApiSchemasPlugin['Instance'];
+}) => {
+  const config = resolveRequestsConfig(plugin);
+  if (!config.enabled || !context.spec.paths) {
+    return;
+  }
+
+  for (const path in context.spec.paths) {
+    const pathItem = context.spec.paths[path as `/${string}`];
+    if (!pathItem) {
+      continue;
+    }
+
+    for (const method of httpMethods) {
+      const operation = pathItem[method];
+      if (!operation?.requestBody) {
+        continue;
+      }
+
+      const requestBody = operation.requestBody;
+      // Skip $ref request bodies
+      if ('$ref' in requestBody) {
+        continue;
+      }
+
+      // Prefer application/json, fall back to first available content type
+      const mediaType =
+        requestBody.content['application/json'] ?? Object.values(requestBody.content)[0];
+      if (!mediaType?.schema) {
+        continue;
+      }
+
+      const schema = mediaType.schema;
+      const name = requestSchemaName({
+        method,
+        nameBuilder: config.nameBuilder,
+        operationId: operation.operationId,
+        path,
+        schema,
+      });
+      const symbol = plugin.symbol(name, {
+        meta: {
+          category: 'schema',
+          resource: 'request',
+          resourceId: operation.operationId ?? `${method}:${path}`,
+          tool: 'json-schema',
+        },
+      });
+      const obj = schemaToJsonSchema2020_12({
+        context,
+        plugin,
+        schema,
+      });
+      const statement = $.const(symbol)
+        .export()
+        .assign(
+          $(
+            $.fromValue(obj, {
+              layout: 'pretty',
+            }),
+          ).as('const'),
+        );
+      plugin.node(statement);
+    }
+  }
+};
+
 export const handler: HeyApiSchemasPlugin['Handler'] = ({ plugin }) => {
   if ('swagger' in plugin.context.spec) {
-    schemasV2_0_X({
-      context: plugin.context as Context<OpenApi.V2_0_X>,
-      plugin,
-    });
+    const context = plugin.context as Context<OpenApi.V2_0_X>;
+    schemasV2_0_X({ context, plugin });
+    requestSchemasV2_0_X({ context, plugin });
     return;
   }
 
   if (satisfies(plugin.context.spec.openapi, '>=3.0.0 <3.1.0')) {
-    schemasV3_0_X({
-      context: plugin.context as Context<OpenApi.V3_0_X>,
-      plugin,
-    });
+    const context = plugin.context as Context<OpenApi.V3_0_X>;
+    schemasV3_0_X({ context, plugin });
+    requestSchemasV3_0_X({ context, plugin });
     return;
   }
 
   if (satisfies(plugin.context.spec.openapi, '>=3.1.0')) {
-    schemasV3_1_X({
-      context: plugin.context as Context<OpenApi.V3_1_X>,
-      plugin,
-    });
+    const context = plugin.context as Context<OpenApi.V3_1_X>;
+    schemasV3_1_X({ context, plugin });
+    requestSchemasV3_1_X({ context, plugin });
     return;
   }
 

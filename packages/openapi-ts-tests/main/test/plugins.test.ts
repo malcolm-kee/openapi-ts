@@ -429,6 +429,18 @@ for (const version of versions) {
       },
       {
         config: createConfig({
+          output: 'requests',
+          plugins: [
+            {
+              name: '@hey-api/schemas',
+              requests: true,
+            },
+          ],
+        }),
+        description: 'generate schemas with request schemas',
+      },
+      {
+        config: createConfig({
           output: 'default',
           plugins: ['@hey-api/sdk', '@hey-api/client-fetch'],
         }),
